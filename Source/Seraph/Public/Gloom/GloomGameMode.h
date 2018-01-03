@@ -17,39 +17,18 @@ class SERAPH_API AGloomGameMode : public AGameMode, public IScenarioInterface
 {
 	GENERATED_UCLASS_BODY()
 
+private:
 
+	UPROPERTY()
+		TArray<AGASCharacter*> ScenarioPawns;
 	
 public:
 
-	UPROPERTY()
-		TArray<AGASCharacter*> Pawns;
-
-	UPROPERTY()
-		int32 NumActionResponsesReceived;
-
-
-	virtual void PostLogin(APlayerController* NewPlayer) override;
-
-
-
-
 	virtual void BeginPlay() override;
-
-	virtual void RestartPlayer(AController* NewPlayer) override;
-
-	UFUNCTION()
-		void RegisterPawn(AGASCharacter* NewPawn);
-
-	void BeginScenario();
-
-	void BeginActionSelection();
 
 	void ReceiveActionSelect(AGASCharacter* Pawn, uint8 ActionA, uint8 ActionB);
 
 	void CalcTurnOrder();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Turn")
-		void OnBeginTurn(APawn* InstigatorPawn);
 
 	UFUNCTION(BlueprintNativeEvent)
 		void PerformScenarioSetup();

@@ -18,7 +18,7 @@ class UGameplayAbilitySet;
 UCLASS(config=Game)
 class ASeraphCharacter : public ACharacter, public IAbilitySystemInterface
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -28,7 +28,7 @@ class ASeraphCharacter : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 public:
-	ASeraphCharacter();
+
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)

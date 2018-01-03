@@ -27,8 +27,14 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scenario")
 		void PerformScenarioSetup();
 
+	UFUNCTION()
+		virtual bool IsReadyToStartScenario() const;
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scenario")
 		void PrepareForRound();
+
+	UFUNCTION()
+		virtual bool IsReadyToStartRound() const;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scenario")
 		void BeginRound();

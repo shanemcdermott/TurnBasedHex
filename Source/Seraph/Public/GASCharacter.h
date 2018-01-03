@@ -11,35 +11,31 @@
 UCLASS()
 class SERAPH_API AGASCharacter : public ASeraphCharacter
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 
 public:
 	
-	UPROPERTY(ReplicatedUsing = OnRep_Initiative, EditAnywhere, BlueprintReadWrite, Category = "Scenario")
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Scenario")
 		uint8 Initiative;
 
-	// Sets default values for this character's properties
-	AGASCharacter();
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Tags")
+		FGameplayTagContainer GameplayTags;
+
+
 	
 	virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintCallable, Category = "Online|Scenario")
-		void RegisterForCombat();
+	UFUNCTION(BlueprintCallable, Category = "Initiative")
+		void SetInitiative(uint8 Init);
 
-	UFUNCTION(Server, Reliable, WithValidation, BlueprintCallable, Category = "Initiative")
+	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerSetInitiative(uint8 Init);
-	void ServerSetInitiative_Implementation(uint8 Init);
-	bool ServerSetInitiative_Validate(uint8 Init);
-
-	UFUNCTION()
-	void OnRep_Initiative();
 
 
 	virtual void BeginActionSelection();
 
 	UFUNCTION(Client, Reliable)
 	void ClientBeginActionSelection();
-	void ClientBeginActionSelection_Implementation();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Initiative")
 		void OnBeginActionSelection();
@@ -50,8 +46,6 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSubmitActionSelection(uint8 ActionA, uint8 ActionB);
-	void ServerSubmitActionSelection_Implementation(uint8 ActionA, uint8 ActionB);
-	bool ServerSubmitActionSelection_Validate(uint8 ActionA, uint8 ActionB);
 
 	virtual void StartTurn();
 
@@ -62,7 +56,6 @@ public:
 
 	UFUNCTION(Client, Reliable)
 		void ClientStartTurn();
-	void ClientStartTurn_Implementation();
 
 
 	UFUNCTION(BlueprintCallable, Category = "Turn")
@@ -70,10 +63,18 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerEndTurn();
-	void ServerEndTurn_Implementation();
-	bool ServerEndTurn_Validate();
 
+	UFUNCTION(BlueprintCallable, Category = "Tags")
+		void AddTag(const FGameplayTag& InTag);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerAddTag(const FGameplayTag& InTag);
+
+	UFUNCTION(BlueprintCallable, Category = "Tags")
+		void RemoveTag(const FGameplayTag& TagToRemove);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerRemoveTag(const FGameplayTag& TagToRemove);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

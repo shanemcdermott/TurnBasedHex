@@ -2,9 +2,9 @@
 
 #include "GloomPlayerController.h"
 #include "UnrealNetwork.h"
-#include "GloomPlayerState.h"
 #include "GASCharacter.h"
 #include "UI/GloomHUD.h"
+#include "GloomGameState.h"
 
 AGloomPlayerController::AGloomPlayerController(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -12,9 +12,9 @@ AGloomPlayerController::AGloomPlayerController(const FObjectInitializer& ObjectI
 	bShowMouseCursor = true;
 }
 
-AGloomPlayerState* AGloomPlayerController::GetPlayerState()
+bool AGloomPlayerController::IsReadyToStartScenario() const
 {
-	return Cast<AGloomPlayerState>(PlayerState);
+	return bIsReadyToStartScenario;
 }
 
 bool AGloomPlayerController::IsReadyToStartRound() const
@@ -48,6 +48,7 @@ void AGloomPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(AGloomPlayerController, bIsReadyToStartScenario);
 	DOREPLIFETIME(AGloomPlayerController, bIsReadyToStartRound);
 	DOREPLIFETIME(AGloomPlayerController, PawnClass);
 	DOREPLIFETIME(AGloomPlayerController, PlayerId);
@@ -77,6 +78,11 @@ void AGloomPlayerController::BeginRound_Implementation()
 
 void AGloomPlayerController::BeginTurn_Implementation()
 {
+	AGASCharacter* GC = GetGloomPawn();
+	if (GC)
+	{
+		GC->AddTag(FGameplayTag(TEXT("Gloom.CurrentTurn")));
+	}
 	GloomHUD->Execute_BeginTurn(GloomHUD);
 }
 
@@ -98,4 +104,34 @@ AGASCharacter * AGloomPlayerController::GetGloomPawn()
 		return Cast<AGASCharacter>(GetPawn());
 	}
 	return nullptr;
+}
+
+void AGloomPlayerController::Server_SetReadyToStartScenario_Implementation(bool bIsReady)
+{
+	SetReadyToStartScenario(bIsReady);
+}
+
+void AGloomPlayerController::SetReadyToStartScenario(bool bIsReady)
+{
+	if (Role == ROLE_Authority)
+	{
+		bIsReadyToStartScenario = bIsReady;
+		if (bIsReadyToStartScenario)
+		{
+			AGloomGameState* GS = Cast<AGloomGameState>(GetWorld()->GetGameState());
+			if (GS)
+			{
+				GS->ConsiderStartingScenario();
+			}
+		}
+	}
+	else
+	{
+		Server_SetReadyToStartScenario(bIsReady);
+	}
+}
+
+bool AGloomPlayerController::Server_SetReadyToStartScenario_Validate(bool bIsReady)
+{
+	return true;
 }

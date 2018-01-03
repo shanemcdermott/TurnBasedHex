@@ -5,7 +5,8 @@
 #include "GloomGameMode.h"
 
 // Sets default values
-AGASCharacter::AGASCharacter()
+AGASCharacter::AGASCharacter(const FObjectInitializer& ObjectInitializer)
+	:Super(ObjectInitializer)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	//PrimaryActorTick.bCanEverTick = true;
@@ -17,15 +18,15 @@ void AGASCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AGASCharacter::RegisterForCombat()
+void AGASCharacter::SetInitiative(uint8 Init)
 {
 	if (Role == ROLE_Authority)
 	{
-		AGloomGameMode* GM = Cast<AGloomGameMode>(GetWorld()->GetAuthGameMode());
-		if (GM)
-		{
-			GM->RegisterPawn(this);
-		}
+		Initiative = Init;
+	}
+	else
+	{
+		ServerSetInitiative(Init);
 	}
 }
 
@@ -36,12 +37,7 @@ bool AGASCharacter::ServerSetInitiative_Validate(uint8 Init)
 
 void AGASCharacter::ServerSetInitiative_Implementation(uint8 Init)
 {
-	Initiative = Init;
-}
-
-void AGASCharacter::OnRep_Initiative()
-{
-
+	SetInitiative(Init);
 }
 
 void AGASCharacter::BeginActionSelection()
@@ -102,6 +98,50 @@ bool AGASCharacter::ServerEndTurn_Validate()
 	return true;
 }
 
+void AGASCharacter::AddTag(const FGameplayTag& InTag)
+{
+	if (Role == ROLE_Authority)
+	{
+		GameplayTags.AddTag(InTag);
+	}
+	else
+	{
+		ServerAddTag(InTag);
+	}
+}
+
+bool AGASCharacter::ServerAddTag_Validate(const FGameplayTag& InTag)
+{
+	return true;
+}
+
+void AGASCharacter::ServerAddTag_Implementation(const FGameplayTag& InTag)
+{
+	AddTag(InTag);
+}
+
+void AGASCharacter::RemoveTag(const FGameplayTag& TagToRemove)
+{
+	if (Role == ROLE_Authority)
+	{
+		GameplayTags.RemoveTag(TagToRemove);
+	}
+	else
+	{
+		ServerRemoveTag(TagToRemove);
+	}
+}
+
+bool AGASCharacter::ServerRemoveTag_Validate(const FGameplayTag& TagToRemove)
+{
+	return true;
+}
+
+void AGASCharacter::ServerRemoveTag_Implementation(const FGameplayTag& TagToRemove)
+{
+	RemoveTag(TagToRemove);
+}
+
 void AGASCharacter::EndTurn()
 {
 	if (Role == ROLE_Authority)
@@ -123,6 +163,7 @@ void AGASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AGASCharacter, Initiative);
+	DOREPLIFETIME(AGASCharacter, GameplayTags);
 }
 
 

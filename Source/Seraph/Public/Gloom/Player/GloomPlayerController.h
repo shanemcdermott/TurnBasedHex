@@ -8,7 +8,6 @@
 #include "GloomPlayerController.generated.h"
 
 class AGASCharacter;
-class AGloomPlayerState;
 class AGloomHUD;
 /**
  * 
@@ -27,6 +26,10 @@ public:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Gloom|Online")
 		int32 PlayerId;
 
+
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Scenario")
+		bool bIsReadyToStartScenario;
+
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Scenario")
 		bool bIsReadyToStartRound;
 
@@ -41,17 +44,18 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const override;
 
-	UFUNCTION()
-		AGloomPlayerState* GetPlayerState();
 
 	UFUNCTION(BlueprintNativeEvent)
 		void PerformScenarioSetup();
+
+	UFUNCTION(BlueprintCallable, Category = "Scenario")
+		virtual bool IsReadyToStartScenario() const override;
 
 	UFUNCTION(BlueprintNativeEvent)
 		void PrepareForRound();
 
 	UFUNCTION(BlueprintCallable, Category = "Scenario")
-		bool IsReadyToStartRound() const;
+		virtual bool IsReadyToStartRound() const override;
 
 	UFUNCTION(BlueprintNativeEvent)
 		void BeginRound();
@@ -67,4 +71,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Gloom|Pawn")
 		AGASCharacter* GetGloomPawn();
+
+	UFUNCTION(BlueprintCallable, Category = "Scenario|Player")
+		void SetReadyToStartScenario(bool bIsReady);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_SetReadyToStartScenario(bool bIsReady);
 };

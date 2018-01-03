@@ -3,19 +3,14 @@
 #include "GloomGameState.h"
 #include "UnrealNetwork.h"
 #include "GloomGameMode.h"
-#include "GloomPlayerState.h"
 #include "Player/GloomPlayerController.h"
+#include "Engine/World.h"
 
 AGloomGameState::AGloomGameState(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
 	ScenarioState = EScenarioState::WaitingToStart;
 	RoundNumber = 0;
-}
-
-AGloomPlayerController* AGloomGameState::GetGloomPlayer(int32 id)
-{
-	return Cast<AGloomPlayerState>(PlayerArray[id])->Controller;
 }
 
 void AGloomGameState::ProcessScenarioStateChange()
@@ -52,16 +47,15 @@ void AGloomGameState::ConsiderStartingScenario()
 
 	if (Role == ROLE_Authority)
 	{
-
-		for (int i = 0; i < PlayerArray.Num(); i++)
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 		{
-			AGloomPlayerState* PS = Cast<AGloomPlayerState>(PlayerArray[i]);
-			if (PS == nullptr || !PS->IsReadyToStart())
+			IScenarioInterface* PC = Cast<IScenarioInterface>(It->Get());
+			if (PC == nullptr || PC->IsReadyToStartScenario() == false)
 			{
+				UE_LOG(LogTemp, Log, TEXT("Not all players are ready to start the scenario."));
 				return;
 			}
 		}
-
 		AGloomGameMode* GM = Cast<AGloomGameMode>(GetWorld()->GetAuthGameMode());
 		if (GM)
 		{
@@ -81,9 +75,10 @@ void AGloomGameState::ConsiderStartingRound()
 {
 	if (Role == ROLE_Authority)
 	{
-		for (int i = 0; i < PlayerArray.Num(); i++)
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 		{
-			if (!GetGloomPlayer(i)->IsReadyToStartRound())
+			IScenarioInterface* PC = Cast<IScenarioInterface>(It->Get());
+			if (PC == nullptr || PC->IsReadyToStartRound() == false)
 			{
 				UE_LOG(LogTemp, Log, TEXT("Not all players are ready to start the round."));
 				return;
@@ -97,6 +92,54 @@ void AGloomGameState::ConsiderStartingRound()
 		ServerConsiderStartingRound();
 	}
 
+}
+
+void AGloomGameState::Multicast_PerformRoundCleanup_Implementation()
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+	{
+		AGloomPlayerController* PC = Cast<AGloomPlayerController>(It->Get());
+		if (PC && PC->IsLocalController())
+		{
+			PC->Execute_PerformRoundCleanup(PC);
+		}
+	}
+}
+
+void AGloomGameState::Multicast_BeginRound_Implementation()
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+	{
+		AGloomPlayerController* PC = Cast<AGloomPlayerController>(It->Get());
+		if (PC && PC->IsLocalController())
+		{
+			PC->Execute_BeginRound(PC);
+		}
+	}
+}
+
+void AGloomGameState::Multicast_StartRoundPreparation_Implementation()
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+	{
+		AGloomPlayerController* PC = Cast<AGloomPlayerController>(It->Get());
+		if (PC && PC->IsLocalController())
+		{
+			PC->Execute_PrepareForRound(PC);
+		}
+	}
+}
+
+void AGloomGameState::Multicast_StartScenarioSetup_Implementation()
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+	{
+		AGloomPlayerController* PC = Cast<AGloomPlayerController>(It->Get());
+		if (PC && PC->IsLocalController())
+		{
+			PC->Execute_PerformScenarioSetup(PC);
+		}
+	}
 }
 
 bool AGloomGameState::ServerConsiderStartingRound_Validate()

@@ -42,9 +42,6 @@ public:
 		int32 CurrentTurnIndex;
 
 	UFUNCTION()
-		AGloomPlayerController* GetGloomPlayer(int32 id);
-
-	UFUNCTION()
 		void SetScenarioState(EScenarioState State);
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -62,4 +59,16 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerConsiderStartingRound();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Multicast_StartScenarioSetup();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Multicast_StartRoundPreparation();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Multicast_BeginRound();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Multicast_PerformRoundCleanup();
 };
