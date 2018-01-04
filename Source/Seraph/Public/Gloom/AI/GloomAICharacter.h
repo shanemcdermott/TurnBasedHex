@@ -17,7 +17,6 @@ class SERAPH_API AGloomAICharacter : public AGASCharacter
 	
 public:
 
-	virtual void BeginActionSelection() override;
-	virtual void StartTurn() override;
+
 	
 };

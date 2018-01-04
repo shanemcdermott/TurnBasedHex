@@ -3,6 +3,7 @@
 
 #include "GameplayEffect.h"
 #include "GameplayEffectTypes.h"
+#include "GameplayAbilitySet.h"
 #include "GASTypes.generated.h"
 
 UENUM()
@@ -83,3 +84,4 @@ struct FGASEffectApplicationContainer
 
 	TArray<FActiveGameplayEffectHandle> ApplyEffectApplicationContainerToTarget(AActor* Target);
 };
+

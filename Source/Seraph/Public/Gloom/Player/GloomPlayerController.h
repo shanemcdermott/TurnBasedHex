@@ -26,7 +26,6 @@ public:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Gloom|Online")
 		int32 PlayerId;
 
-
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Scenario")
 		bool bIsReadyToStartScenario;
 
@@ -35,6 +34,19 @@ public:
 
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Scenario|Pawn")
 		TSubclassOf<AGASCharacter> PawnClass;
+
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Scenario")
+		uint8 Initiative;
+
+	UFUNCTION(BlueprintCallable, Category = "Initiative")
+		uint8 GetInitiativeValue() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Initiative")
+		void SetInitiative(uint8 Init);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerSetInitiative(uint8 Init);
+
 
 	UFUNCTION(BlueprintCallable, Category = "Gloom|Pawn")
 		void SetPawnClass(TSubclassOf<AGASCharacter> InPawnClass);
@@ -63,8 +75,14 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 		void BeginTurn();
 
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(Client, Reliable)
+		void Client_BeginTurn();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Scenario")
 		void EndTurn();
+
+	UFUNCTION(Client, Reliable)
+		void Client_EndTurn();
 
 	UFUNCTION(BlueprintNativeEvent)
 		void PerformRoundCleanup();
@@ -77,4 +95,10 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_SetReadyToStartScenario(bool bIsReady);
+
+	UFUNCTION(BlueprintCallable, Category = "Scenario|Player")
+		void SetReadyToStartRound(bool bIsReady);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_SetReadyToStartRound(bool bIsReady);
 };

@@ -10,7 +10,7 @@
 
 #include "AbilitySystemGlobals.h"
 #include "GameplayCueManager.h"
-#include "GameplayAbilitySet.h"
+#include "Gloom/Abilities/GloomAbilitySet.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ASeraphCharacter
@@ -72,7 +72,7 @@ void ASeraphCharacter::BeginPlay()
 
 	if (Role == ROLE_Authority && AbilitySet != nullptr)
 	{
-		AbilitySet->GiveAbilities(AbilitySystemComponent);
+		SetupAbilitySystem();
 	}
 
 	if (AbilitySystemComponent)
@@ -81,6 +81,12 @@ void ASeraphCharacter::BeginPlay()
 
 		UE_LOG(LogTemp, Display, TEXT("%s BeginPlay: %s"), *GetFullName(), *GetNameSafe(AbilitySystemComponent->AbilityActorInfo->PlayerController.Get()));
 	}
+	
+}
+
+void ASeraphCharacter::SetupAbilitySystem()
+{
+	AbilitySet->GiveAbilities(AbilitySystemComponent);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -114,7 +120,7 @@ void ASeraphCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 
 	AbilitySystemComponent->BindToInputComponent(PlayerInputComponent);
 
-	FGameplayAbiliyInputBinds AbilityBinds(FString(), TEXT("AbilityCancel"), TEXT("EGameplayAbilityInputBinds"), (int32)EGameplayAbilityInputBinds::Ability1);
+	FGameplayAbiliyInputBinds AbilityBinds(FString(), TEXT("AbilityCancel"), TEXT("EGloomAbilityInputBinds"));
 	AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent, AbilityBinds);
 
 	// -------------------------------------------------------------------------------------------

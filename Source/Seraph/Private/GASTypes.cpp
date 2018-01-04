@@ -104,3 +104,4 @@ TArray<FActiveGameplayEffectHandle> FGASEffectApplicationContainer::ApplyEffectA
 
 	return Handles;
 }
+

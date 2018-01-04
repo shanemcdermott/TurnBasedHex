@@ -5,11 +5,15 @@
 #include "GASCharacter.h"
 #include "UI/GloomHUD.h"
 #include "GloomGameState.h"
+#include "GloomGameMode.h"
+#include "GameplayTagContainer.h"
+
 
 AGloomPlayerController::AGloomPlayerController(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
 	bShowMouseCursor = true;
+	Initiative = 99;
 }
 
 bool AGloomPlayerController::IsReadyToStartScenario() const
@@ -50,6 +54,7 @@ void AGloomPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 
 	DOREPLIFETIME(AGloomPlayerController, bIsReadyToStartScenario);
 	DOREPLIFETIME(AGloomPlayerController, bIsReadyToStartRound);
+	DOREPLIFETIME(AGloomPlayerController, Initiative);
 	DOREPLIFETIME(AGloomPlayerController, PawnClass);
 	DOREPLIFETIME(AGloomPlayerController, PlayerId);
 }
@@ -78,15 +83,43 @@ void AGloomPlayerController::BeginRound_Implementation()
 
 void AGloomPlayerController::BeginTurn_Implementation()
 {
-	AGASCharacter* GC = GetGloomPawn();
-	if (GC)
+	if (!IsLocalController())
+		Client_BeginTurn();
+	else
 	{
-		GC->AddTag(FGameplayTag(TEXT("Gloom.CurrentTurn")));
+		if (GloomHUD)
+			GloomHUD->Execute_BeginTurn(GloomHUD);
 	}
-	GloomHUD->Execute_BeginTurn(GloomHUD);
+
+}
+
+void AGloomPlayerController::Client_BeginTurn_Implementation()
+{
+	BeginTurn();
 }
 
 void AGloomPlayerController::EndTurn_Implementation()
+{
+	if (IsLocalController())
+	{
+		GloomHUD->Execute_EndTurn(GloomHUD);
+	}
+	else if(Role == ROLE_Authority)
+	{
+		Client_EndTurn();
+	}
+	if (Role == ROLE_Authority)
+	{
+		AGloomGameMode* GM = Cast<AGloomGameMode>(GetWorld()->GetAuthGameMode());
+		if (GM)
+		{
+			GM->Execute_EndTurn(GM);
+		}
+	}
+
+}
+
+void AGloomPlayerController::Client_EndTurn_Implementation()
 {
 	GloomHUD->Execute_EndTurn(GloomHUD);
 }
@@ -106,10 +139,6 @@ AGASCharacter * AGloomPlayerController::GetGloomPawn()
 	return nullptr;
 }
 
-void AGloomPlayerController::Server_SetReadyToStartScenario_Implementation(bool bIsReady)
-{
-	SetReadyToStartScenario(bIsReady);
-}
 
 void AGloomPlayerController::SetReadyToStartScenario(bool bIsReady)
 {
@@ -131,7 +160,66 @@ void AGloomPlayerController::SetReadyToStartScenario(bool bIsReady)
 	}
 }
 
+void AGloomPlayerController::Server_SetReadyToStartScenario_Implementation(bool bIsReady)
+{
+	SetReadyToStartScenario(bIsReady);
+}
+
 bool AGloomPlayerController::Server_SetReadyToStartScenario_Validate(bool bIsReady)
 {
 	return true;
+}
+
+void AGloomPlayerController::SetReadyToStartRound(bool bIsReady)
+{
+	if (Role == ROLE_Authority)
+	{
+		bIsReadyToStartRound = bIsReady;
+		AGloomGameState* GS = GetWorld()->GetGameState<AGloomGameState>();
+		if (GS)
+		{
+			GS->ConsiderStartingRound();
+		}
+	}
+	else
+	{
+		Server_SetReadyToStartRound(bIsReady);
+	}
+}
+
+bool AGloomPlayerController::Server_SetReadyToStartRound_Validate(bool bIsReady)
+{
+	return true;
+}
+
+void AGloomPlayerController::Server_SetReadyToStartRound_Implementation(bool bIsReady)
+{
+	SetReadyToStartRound(bIsReady);
+}
+
+uint8 AGloomPlayerController::GetInitiativeValue() const
+{
+	return Initiative;
+}
+
+void AGloomPlayerController::SetInitiative(uint8 Init)
+{
+	if (Role == ROLE_Authority)
+	{
+		Initiative = Init;		
+	}
+	else
+	{
+		ServerSetInitiative(Init);
+	}
+}
+
+bool AGloomPlayerController::ServerSetInitiative_Validate(uint8 Init)
+{
+	return true;
+}
+
+void AGloomPlayerController::ServerSetInitiative_Implementation(uint8 Init)
+{
+	SetInitiative(Init);
 }

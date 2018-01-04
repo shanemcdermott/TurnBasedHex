@@ -7,7 +7,7 @@
 #include "ScenarioInterface.h"
 #include "GloomGameMode.generated.h"
 
-class AGASCharacter;
+class AGloomPlayerController;
 
 /**
  * 
@@ -19,14 +19,12 @@ class SERAPH_API AGloomGameMode : public AGameMode, public IScenarioInterface
 
 private:
 
-	UPROPERTY()
-		TArray<AGASCharacter*> ScenarioPawns;
+		UPROPERTY()
+		TArray<AGloomPlayerController*> ScenarioPlayers;
 	
 public:
 
 	virtual void BeginPlay() override;
-
-	void ReceiveActionSelect(AGASCharacter* Pawn, uint8 ActionA, uint8 ActionB);
 
 	void CalcTurnOrder();
 

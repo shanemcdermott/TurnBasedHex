@@ -9,9 +9,9 @@
 
 struct FSortByInitiative
 {
-	bool operator()(const AGASCharacter* A, const AGASCharacter* B) const
+	bool operator()(const AGloomPlayerController* A, const AGloomPlayerController* B) const
 	{
-		return A->Initiative > B->Initiative;
+		return A->GetInitiativeValue() > B->GetInitiativeValue();
 	}
 };
 
@@ -27,17 +27,9 @@ void AGloomGameMode::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AGloomGameMode::ReceiveActionSelect(AGASCharacter* Pawn, uint8 ActionA, uint8 ActionB)
-{
-	UE_LOG(LogTemp, Log, TEXT("Received Action Selections %d and %d from %s"), ActionA, ActionB, *Pawn->Name);
-
-	AGloomGameState* GS = GetGameState<AGloomGameState>();
-	GS->ConsiderStartingRound();
-}
-
 void AGloomGameMode::CalcTurnOrder()
 {
-	Algo::Sort(ScenarioPawns, FSortByInitiative());
+	Algo::Sort(ScenarioPlayers, FSortByInitiative());
 }
 
 
@@ -47,12 +39,12 @@ void AGloomGameMode::PerformScenarioSetup_Implementation()
 	AGloomGameState* GS = GetGameState<AGloomGameState>();
 	GS->Multicast_StartScenarioSetup();
 	
-	for (FConstPawnIterator It = GetWorld()->GetPawnIterator(); It; It++)
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 	{
-		AGASCharacter* GC = Cast<AGASCharacter>(It->Get());
-		if (GC)
+		AGloomPlayerController* PC = Cast<AGloomPlayerController>(It->Get());
+		if (PC)
 		{
-			ScenarioPawns.Add(GC);
+			ScenarioPlayers.Add(PC);
 		}
 	}
 
@@ -76,7 +68,7 @@ void AGloomGameMode::BeginRound_Implementation()
 void AGloomGameMode::BeginTurn_Implementation()
 {
 	int32 TurnIndex = GetGameState<AGloomGameState>()->CurrentTurnIndex;
-	ScenarioPawns[TurnIndex]->StartTurn();
+	ScenarioPlayers[TurnIndex]->Execute_BeginTurn(ScenarioPlayers[TurnIndex]);
 }
 
 
@@ -84,7 +76,7 @@ void AGloomGameMode::EndTurn_Implementation()
 {
 	AGloomGameState* GS = GetGameState<AGloomGameState>();
 	int32 Turn = GS->CurrentTurnIndex;
-	if (Turn + 1 >= ScenarioPawns.Num())
+	if (Turn + 1 >= ScenarioPlayers.Num())
 		GS->SetScenarioState(EScenarioState::RoundCleanup);
 	else
 	{

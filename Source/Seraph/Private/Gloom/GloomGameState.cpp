@@ -22,21 +22,21 @@ void AGloomGameState::ProcessScenarioStateChange()
 		{
 		case EScenarioState::ScenarioSetup:
 			UE_LOG(LogTemp, Log, TEXT("Starting Scenario..."));
-			GM->PerformScenarioSetup();
+			GM->Execute_PerformScenarioSetup(GM);
 			break;
 		case EScenarioState::RoundSetup:
 			UE_LOG(LogTemp, Log, TEXT("Preparing for Round %d"), RoundNumber + 1);
-			GM->PrepareForRound();
+			GM->Execute_PrepareForRound(GM);
 			break;
 		case EScenarioState::MidRound:
 			RoundNumber++;
 			CurrentTurnIndex = 0;
 			UE_LOG(LogTemp, Log, TEXT("Starting Round %d"), RoundNumber);
-			GM->BeginRound();
+			GM->Execute_BeginRound(GM);
 			break;
 		case EScenarioState::RoundCleanup:
 			UE_LOG(LogTemp, Log, TEXT("End of Round %d"), RoundNumber);
-			GM->PerformRoundCleanup();
+			GM->Execute_PerformRoundCleanup(GM);
 			break;
 		}
 	}

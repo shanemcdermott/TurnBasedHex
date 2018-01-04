@@ -3,6 +3,10 @@
 #include "GASCharacter.h"
 #include "UnrealNetwork.h"
 #include "GloomGameMode.h"
+#include "GloomPlayerController.h"
+#include "GloomGameState.h"
+#include "AbilitySystemComponent.h"
+#include "ScenarioInterface.h"
 
 // Sets default values
 AGASCharacter::AGASCharacter(const FObjectInitializer& ObjectInitializer)
@@ -10,93 +14,95 @@ AGASCharacter::AGASCharacter(const FObjectInitializer& ObjectInitializer)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	//PrimaryActorTick.bCanEverTick = true;
-	Initiative = 99;
 }
 
-void AGASCharacter::BeginPlay()
+void AGASCharacter::SetupAbilitySystem()
 {
-	Super::BeginPlay();
+	AbilityList.SetNum(AbilitySet->GetNumAbilities());
+	AbilitySet->GiveGloomAbilities(AbilitySystemComponent, AbilityList);
 }
 
-void AGASCharacter::SetInitiative(uint8 Init)
-{
-	if (Role == ROLE_Authority)
-	{
-		Initiative = Init;
-	}
-	else
-	{
-		ServerSetInitiative(Init);
-	}
-}
-
-bool AGASCharacter::ServerSetInitiative_Validate(uint8 Init)
-{
-	return true;
-}
-
-void AGASCharacter::ServerSetInitiative_Implementation(uint8 Init)
-{
-	SetInitiative(Init);
-}
-
-void AGASCharacter::BeginActionSelection()
-{
-	ClientBeginActionSelection();
-}
-
-void AGASCharacter::ClientBeginActionSelection_Implementation()
-{
-	OnBeginActionSelection();
-}
-
-void AGASCharacter::SubmitActionSelection(uint8 ActionA, uint8 ActionB)
+void AGASCharacter::SetLeadingAction(int32 ActionID)
 {
 	if (Role == ROLE_Authority)
 	{
-		Initiative = FMath::Min(ActionA, ActionB);
-		AGloomGameMode* GM = Cast<AGloomGameMode>(GetWorld()->GetAuthGameMode());
-		if (GM)
+		LeadingActionIndex = ActionID;
+		AGloomPlayerController* PC = Cast<AGloomPlayerController>(GetController());
+		if (PC)
 		{
-			GM->ReceiveActionSelect(this, ActionA, ActionB);
+			PC->SetInitiative(AbilityList[LeadingActionIndex].Priority);
 		}
 	}
 	else
 	{
-		ServerSubmitActionSelection(ActionA, ActionB);
+		Server_SetLeadingAction(ActionID);
 	}
 }
 
-void AGASCharacter::ServerSubmitActionSelection_Implementation(uint8 ActionA, uint8 ActionB)
+bool AGASCharacter::Server_SetLeadingAction_Validate(int32 ActionID)
 {
-	SubmitActionSelection(ActionA, ActionB);
+	return AbilityList.IsValidIndex(ActionID);
 }
 
-bool AGASCharacter::ServerSubmitActionSelection_Validate(uint8 ActionA, uint8 ActionB)
+void AGASCharacter::Server_SetLeadingAction_Implementation(int32 ActionID)
 {
-	return true;
+	SetLeadingAction(ActionID);
 }
 
-void AGASCharacter::StartTurn()
+
+void AGASCharacter::SetSecondaryAction(int32 ActionID)
 {
-	UE_LOG(LogTemp, Log, TEXT("%s: Starting my turn!"), *Name);
-	ClientStartTurn();
+	if (Role == ROLE_Authority)
+	{
+		SecondaryActionIndex = ActionID;
+	}
+	else
+	{
+		Server_SetSecondaryAction(ActionID);
+	}
 }
 
-void AGASCharacter::ClientStartTurn_Implementation()
+bool AGASCharacter::Server_SetSecondaryAction_Validate(int32 ActionID)
 {
-	OnBeginTurn();
+	return AbilityList.IsValidIndex(ActionID);
 }
 
-void AGASCharacter::ServerEndTurn_Implementation()
+void AGASCharacter::Server_SetSecondaryAction_Implementation(int32 ActionID)
 {
-	EndTurn();
+	SetSecondaryAction(ActionID);
 }
 
-bool AGASCharacter::ServerEndTurn_Validate()
+void AGASCharacter::SetAbilityLocation(int32 AbilityID, EAbilityLocation Location)
 {
-	return true;
+	if (Role == ROLE_Authority)
+	{
+		AbilityList[AbilityID].Location = Location;
+	}
+	else
+	{
+		Server_SetAbilityLocation(AbilityID, Location);
+	}
 }
+
+bool AGASCharacter::Server_SetAbilityLocation_Validate(int32 AbilityID, EAbilityLocation Location)
+{
+	return AbilityList.IsValidIndex(AbilityID);
+}
+
+void AGASCharacter::Server_SetAbilityLocation_Implementation(int32 AbilityID, EAbilityLocation Location)
+{
+	SetAbilityLocation(AbilityID, Location);
+}
+
+void AGASCharacter::TryActivateAbility(int32 AbilityID, bool bIsTop)
+{
+	if(bIsTop)
+		GetAbilitySystemComponent()->TryActivateAbility(AbilityList[AbilityID].TopHandle, true);
+	else
+		GetAbilitySystemComponent()->TryActivateAbility(AbilityList[AbilityID].BottomHandle, true);
+}
+
+
 
 void AGASCharacter::AddTag(const FGameplayTag& InTag)
 {
@@ -132,6 +138,36 @@ void AGASCharacter::RemoveTag(const FGameplayTag& TagToRemove)
 	}
 }
 
+void AGASCharacter::EndTurn()
+{
+	if (Role == ROLE_Authority)
+	{
+		IScenarioInterface* SI = Cast<IScenarioInterface>(GetController());
+		if (SI)
+		{
+			SI->Execute_EndTurn(GetController());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Controller does not implement scenario interface!"));
+		}
+	}
+	else
+	{
+		Server_EndTurn();
+	}
+}
+
+bool AGASCharacter::Server_EndTurn_Validate()
+{
+	return true;
+}
+
+void AGASCharacter::Server_EndTurn_Implementation()
+{
+	EndTurn();
+}
+
 bool AGASCharacter::ServerRemoveTag_Validate(const FGameplayTag& TagToRemove)
 {
 	return true;
@@ -142,28 +178,13 @@ void AGASCharacter::ServerRemoveTag_Implementation(const FGameplayTag& TagToRemo
 	RemoveTag(TagToRemove);
 }
 
-void AGASCharacter::EndTurn()
-{
-	if (Role == ROLE_Authority)
-	{
-		AGloomGameMode* GM = Cast<AGloomGameMode>(GetWorld()->GetAuthGameMode());
-		if (GM)
-		{
-			GM->EndTurn();
-		}
-	}
-	else
-	{
-		ServerEndTurn();
-	}
-}
-
 void AGASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AGASCharacter, Initiative);
+	DOREPLIFETIME(AGASCharacter, AbilityList);
 	DOREPLIFETIME(AGASCharacter, GameplayTags);
+	DOREPLIFETIME(AGASCharacter, LeadingActionIndex);
+	DOREPLIFETIME(AGASCharacter, SecondaryActionIndex);
 }
 
 

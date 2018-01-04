@@ -13,7 +13,7 @@
 
 #include "SeraphCharacter.generated.h"
 
-class UGameplayAbilitySet;
+class UGloomAbilitySet;
 
 UCLASS(config=Game)
 class ASeraphCharacter : public ACharacter, public IAbilitySystemInterface
@@ -58,10 +58,11 @@ public:
 
 
 	/** Abilities we will give this character on spawn */
-	UPROPERTY(EditAnywhere)
-		UGameplayAbilitySet* AbilitySet;
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
+		UGloomAbilitySet* AbilitySet;
 	
+	virtual void SetupAbilitySystem();
+
 	virtual float GetMaxSpeed() const
 	{
 		return AttributeSet->MaxMovementSpeed;
