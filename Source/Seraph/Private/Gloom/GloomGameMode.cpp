@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "GloomGameState.h"
+#include "Hexagons/HexGraph.h"
 #include "Player/GloomPlayerController.h"
 
 struct FSortByInitiative
@@ -32,8 +33,6 @@ void AGloomGameMode::CalcTurnOrder()
 	Algo::Sort(ScenarioPlayers, FSortByInitiative());
 }
 
-
-
 void AGloomGameMode::PerformScenarioSetup_Implementation()
 {
 	AGloomGameState* GS = GetGameState<AGloomGameState>();
@@ -45,6 +44,7 @@ void AGloomGameMode::PerformScenarioSetup_Implementation()
 		if (PC)
 		{
 			ScenarioPlayers.Add(PC);
+			GS->HexGraph->AddActor(PC->GetGloomPawn());
 		}
 	}
 

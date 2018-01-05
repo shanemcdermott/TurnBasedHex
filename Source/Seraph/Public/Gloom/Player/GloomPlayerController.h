@@ -87,6 +87,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 		void PerformRoundCleanup();
 
+	UFUNCTION(Client, Reliable)
+		void Client_PerformRoundCleanup();
+
 	UFUNCTION(BlueprintCallable, Category = "Gloom|Pawn")
 		AGASCharacter* GetGloomPawn();
 

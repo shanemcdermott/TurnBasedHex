@@ -12,7 +12,10 @@ UCLASS()
 class SERAPH_API UGASAttributeSet : public UAttributeSet
 {
 	GENERATED_UCLASS_BODY()
-	
+
+	UPROPERTY()
+	float MovementRange;
+
 	UPROPERTY()
 	float	MaxMovementSpeed;
 

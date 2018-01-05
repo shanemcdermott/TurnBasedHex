@@ -126,8 +126,19 @@ void AGloomPlayerController::Client_EndTurn_Implementation()
 
 void AGloomPlayerController::PerformRoundCleanup_Implementation()
 {
+	if(IsLocalController())
+		GloomHUD->Execute_PerformRoundCleanup(GloomHUD);
+	else if (Role == ROLE_Authority)
+	{
+		Client_PerformRoundCleanup();
+	}
+
+	SetReadyToStartRound(false);
+}
+
+void AGloomPlayerController::Client_PerformRoundCleanup_Implementation()
+{
 	GloomHUD->Execute_PerformRoundCleanup(GloomHUD);
-	bIsReadyToStartRound = false;
 }
 
 AGASCharacter * AGloomPlayerController::GetGloomPawn()

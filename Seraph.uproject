@@ -154,6 +154,10 @@
 		{
 			"Name": "MobileLauncherProfileWizard",
 			"Enabled": false
+		},
+		{
+			"Name": "HexUtils",
+			"Enabled": false
 		}
 	]
 }

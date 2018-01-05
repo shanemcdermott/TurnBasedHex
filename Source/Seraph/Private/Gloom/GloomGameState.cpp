@@ -5,6 +5,7 @@
 #include "GloomGameMode.h"
 #include "Player/GloomPlayerController.h"
 #include "Engine/World.h"
+#include "Hexagons/HexGraph.h"
 
 AGloomGameState::AGloomGameState(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -92,6 +93,25 @@ void AGloomGameState::ConsiderStartingRound()
 		ServerConsiderStartingRound();
 	}
 
+}
+
+void AGloomGameState::SetHexGraph(AHexGraph* InGraph)
+{
+	if (Role == ROLE_Authority)
+	{
+		HexGraph = InGraph;
+		HexGraph->SetOwner(this);
+	}
+}
+
+void AGloomGameState::Server_SetHexGraph_Implementation(AHexGraph* InGraph)
+{
+	SetHexGraph(InGraph);
+}
+
+bool AGloomGameState::Server_SetHexGraph_Validate(AHexGraph* InGraph)
+{
+	return InGraph != nullptr;
 }
 
 void AGloomGameState::Multicast_PerformRoundCleanup_Implementation()
@@ -192,4 +212,5 @@ void AGloomGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutL
 	DOREPLIFETIME(AGloomGameState, ScenarioState);
 	DOREPLIFETIME(AGloomGameState, RoundNumber);
 	DOREPLIFETIME(AGloomGameState, CurrentTurnIndex);
+	DOREPLIFETIME(AGloomGameState, HexGraph);
 }

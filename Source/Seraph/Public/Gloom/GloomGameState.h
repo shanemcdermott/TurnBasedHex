@@ -6,6 +6,8 @@
 #include "GameFramework/GameState.h"
 #include "GloomGameState.generated.h"
 
+class AHexGraph;
+
 UENUM(BlueprintType)
 enum class EScenarioState : uint8
 {
@@ -41,6 +43,9 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Scenario")
 		int32 CurrentTurnIndex;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Scenario")
+		AHexGraph* HexGraph;
+
 	UFUNCTION()
 		void SetScenarioState(EScenarioState State);
 
@@ -60,6 +65,8 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerConsiderStartingRound();
 
+	//////MULTICASTS
+
 	UFUNCTION(NetMulticast, Reliable)
 		void Multicast_StartScenarioSetup();
 
@@ -71,4 +78,11 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 		void Multicast_PerformRoundCleanup();
+
+	////////HEX GRAPH
+	UFUNCTION(BlueprintCallable, Category = "HexGraph")
+		void SetHexGraph(AHexGraph* InGraph);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_SetHexGraph(AHexGraph* InGraph);
 };

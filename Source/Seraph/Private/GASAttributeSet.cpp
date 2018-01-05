@@ -9,6 +9,7 @@
 UGASAttributeSet::UGASAttributeSet(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
+	MovementRange = 0.f;
 	MaxMovementSpeed = 450.f;
 	JumpPower = 1.f;
 	AttackPower = 10.f;
@@ -23,6 +24,7 @@ void UGASAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribut
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, MaxHealth);
 	}
+	
 }
 
 void UGASAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
