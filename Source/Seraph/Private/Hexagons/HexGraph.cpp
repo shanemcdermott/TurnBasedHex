@@ -2,6 +2,7 @@
 
 #include "HexGraph.h"
 #include "HexagonLib.h"
+#include "HexNode.h"
 #include "UnrealNetwork.h"
 
 // Sets default values
@@ -12,13 +13,18 @@ AHexGraph::AHexGraph(const FObjectInitializer& ObjectInitializer)
 	//PrimaryActorTick.bCanEverTick = true;
 	SetReplicates(true);
 	Dimensions = FIntPoint(4, 5);
-	InitNodes();
 }
 
 int32 AHexGraph::IndexOf(const FIntPoint& InHex) const
 {
 	return InHex.X * Dimensions.X + InHex.Y;
 }
+
+int32 AHexGraph::IndexOf(const FVector2D& InHex) const
+{
+	return (int32)(InHex.X * Dimensions.X + InHex.Y);
+}
+
 
 bool AHexGraph::IsValidLocation(const FVector& InLocation) const
 {
@@ -32,38 +38,12 @@ bool AHexGraph::IsValidHex(const FIntPoint& InHex) const
 	return InHex.X >= 0 && InHex.X < Dimensions.X && InHex.Y >= 0 && InHex.Y < Dimensions.Y;
 }
 
-void AHexGraph::Resize(const FIntPoint& NewDimensions)
+AHexNode* AHexGraph::GetNode(const FVector2D& InCoords)
 {
-	if (Role == ROLE_Authority)
-	{
-		Dimensions = NewDimensions;
-		InitNodes();
-	}
-	else
-	{
-		Server_Resize(NewDimensions);
-	}
+	return Nodes[IndexOf(InCoords)];
 }
 
-bool AHexGraph::Server_Resize_Validate(const FIntPoint& NewDimensions)
-{
-	return true;
-}
-
-void AHexGraph::Server_Resize_Implementation(const FIntPoint& NewDimensions)
-{
-	Resize(NewDimensions);
-}
-
-void AHexGraph::InitNodes()
-{
-	if (Nodes.Num() != UHexagonLib::LengthOf(Dimensions))
-	{
-		Nodes.SetNumZeroed(UHexagonLib::LengthOf(Dimensions));
-	}
-}
-
-FHexNode& AHexGraph::GetHexNode(const FIntPoint& InCoords)
+AHexNode* AHexGraph::GetHexNode(const FIntPoint& InCoords)
 {
 	return Nodes[IndexOf(InCoords)];
 }
@@ -75,14 +55,7 @@ bool AHexGraph::AddActor(AActor* ActorToAdd)
 		FIntPoint AxialHex;
 		UHexagonLib::WorldToAxial(ActorToAdd->GetActorLocation(), AxialHex);
 
-		if (GetHexNode(AxialHex).Add(ActorToAdd))
-		{
-			FVector WorldCoords;
-			UHexagonLib::AxialToWorld(AxialHex.X, AxialHex.Y, WorldCoords);
-			ActorToAdd->SetActorLocation(WorldCoords);
-			return true;
-		}
-		return false;
+		return GetHexNode(AxialHex)->SetOccupant(ActorToAdd);
 	}
 	else
 	{
@@ -109,10 +82,10 @@ bool AHexGraph::MoveActor(AActor* ActorToMove, const FIntPoint& Destination)
 	{
 		FIntPoint StartingHex;
 		UHexagonLib::WorldToAxial(ActorToMove->GetActorLocation(), StartingHex);
-		FHexNode HexNode = GetHexNode(StartingHex);
-		if (HexNode.Contains(ActorToMove)) HexNode.RemoveOccupant();
+		AHexNode* HexNode = GetHexNode(StartingHex);
+		if (HexNode->Contains(ActorToMove)) HexNode->RemoveOccupant();
 
-		return GetHexNode(Destination).Add(ActorToMove);
+		return GetHexNode(Destination)->SetOccupant(ActorToMove);
 	}
 	else if(IsValidHex(Destination))
 	{
@@ -120,6 +93,19 @@ bool AHexGraph::MoveActor(AActor* ActorToMove, const FIntPoint& Destination)
 		return true;
 	}
 	return false;
+}
+
+void AHexGraph::GetNeighbors(const FVector& Center, TArray<AHexNode*>& OutNeighbors)
+{
+	FIntPoint HexCoords;
+	UHexagonLib::WorldToAxial(Center, HexCoords);
+	TArray<FVector2D> HexNeighbors;
+	UHexagonLib::Neighbors(HexCoords, HexNeighbors);
+	OutNeighbors.SetNum(HexNeighbors.Num());
+	for (int32 i = 0; i < OutNeighbors.Num(); i++)
+	{
+		OutNeighbors[i] = GetNode(HexNeighbors[i]);
+	}
 }
 
 bool AHexGraph::Server_MoveActor_Validate(AActor* ActorToMove, const FIntPoint& Destination)

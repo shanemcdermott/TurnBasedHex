@@ -97,12 +97,17 @@ void AGASCharacter::Server_SetAbilityLocation_Implementation(int32 AbilityID, EA
 void AGASCharacter::TryActivateAbility(int32 AbilityID, bool bIsTop)
 {
 	if(bIsTop)
-		GetAbilitySystemComponent()->TryActivateAbility(AbilityList[AbilityID].TopHandle, true);
+		GetAbilitySystemComponent()->TryActivateAbility(AbilityList[AbilityID].TopInfo.Handle, true);
 	else
-		GetAbilitySystemComponent()->TryActivateAbility(AbilityList[AbilityID].BottomHandle, true);
+		GetAbilitySystemComponent()->TryActivateAbility(AbilityList[AbilityID].BottomInfo.Handle, true);
 }
 
 
+
+int32 AGASCharacter::GetActionRange(int32 ActionID, bool bIsTop) const
+{
+	return bIsTop ? AbilityList[ActionID].TopInfo.Range : AbilityList[ActionID].BottomInfo.Range;
+}
 
 void AGASCharacter::AddTag(const FGameplayTag& InTag)
 {

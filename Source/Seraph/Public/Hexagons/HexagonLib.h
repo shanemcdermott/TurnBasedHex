@@ -7,7 +7,7 @@
 #include "HexagonLib.generated.h"
 
 UENUM(BlueprintType)
-enum class EAxialDirection : uint8
+enum class EHexDirection : uint8
 {
 	Right,
 	ForwardRight,
@@ -16,6 +16,7 @@ enum class EAxialDirection : uint8
 	BackwardLeft,
 	BackwardRight
 };
+
 
 /**
  * 
@@ -28,13 +29,21 @@ class UHexagonLib : public UBlueprintFunctionLibrary
 public:
 	static const FVector2D HexSize;
 	static const FVector2D HexHalfSize;
-	static const FIntPoint AxialForwardRight;
-	static const FIntPoint AxialRight;
-	static const FIntPoint AxialBackwardRight;
-	static const FIntPoint AxialBackwardLeft;
-	static const FIntPoint AxialLeft;
-	static const FIntPoint AxialForwardLeft;
-	static const TArray<FIntPoint> AxialDirections;
+	static const FVector2D AxialForwardRight;
+	static const FVector2D AxialRight;
+	static const FVector2D AxialBackwardRight;
+	static const FVector2D AxialBackwardLeft;
+	static const FVector2D AxialLeft;
+	static const FVector2D AxialForwardLeft;
+	static const TArray<FVector2D> AxialDirections;
+
+	static const FVector CubeForwardRight;
+	static const FVector CubeRight;
+	static const FVector CubeBackwardRight;
+	static const FVector CubeBackwardLeft;
+	static const FVector CubeLeft;
+	static const FVector CubeForwardLeft;
+	static const TArray<FVector> CubeDirections;
 
 	///////CONSTANTS
 
@@ -49,8 +58,13 @@ public:
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Hexagon Library|Conversions")
 		static void AxialToWorld(int32 X, int32 Y, FVector& OutWorldCoords);
 
+	static FVector AxialToWorld(const FIntPoint& InHex);
+	static FVector AxialToWorld(const FVector2D& InHex);
+
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Hexagon Library|Conversions")
 		static void WorldToAxial(const FVector& WorldCoords, FIntPoint& OutAxialCoords);
+
+	static FIntPoint WorldToAxial(const FVector& WorldCoords);
 
 	/////////UTILITIES
 
@@ -63,11 +77,17 @@ public:
 	//////DIRECTIONS
 
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Hexagon Library | Directions")
-		static FIntPoint AxialDirection(EAxialDirection Direction);
+		static FVector2D AxialDirection(EHexDirection Direction);
 
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Hexagon Library | Directions")
-		static FIntPoint Neighbor(const FIntPoint& Hex, EAxialDirection Direction);
+		static FVector2D Neighbor(const FVector2D& Hex, EHexDirection Direction);
+
+	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Hexagon Library | Directions")
+		static FVector WorldNeighbor(const FVector& WorldCoord, EHexDirection Direction);
 
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Hexagon Library")
-		static void Neighbors(const FIntPoint& Hex, TArray<FIntPoint>& OutNeighbors, int32 Radius = 1);
+		static void Neighbors(const FVector2D& Hex, TArray<FVector2D>& OutNeighbors, int32 Radius = 1);
+	
+	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Hexagon Library")
+		static void WorldNeighbors(const FVector& WorldCoords, TArray<FVector>& OutNeighbors, int32 Radius = 1);
 };

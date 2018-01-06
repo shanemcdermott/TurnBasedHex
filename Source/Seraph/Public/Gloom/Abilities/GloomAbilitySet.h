@@ -61,6 +61,22 @@ struct FGloomAbilityInfo
 {
 	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
+		int32 Range;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
+		FString Details;
+
+	UPROPERTY()
+		FGameplayAbilitySpecHandle Handle;
+
+};
+
+USTRUCT(BlueprintType)
+struct FGloomAbilityCardInfo
+{
+	GENERATED_USTRUCT_BODY()
+
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
 		EAbilityLocation Location;
 
@@ -71,18 +87,12 @@ struct FGloomAbilityInfo
 		FString CardName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
-		FString TopDetails;
+		FGloomAbilityInfo TopInfo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
-		FString BottomDetails;
-
-	UPROPERTY()
-		FGameplayAbilitySpecHandle TopHandle;
-
-	UPROPERTY()
-		FGameplayAbilitySpecHandle BottomHandle;
-
+		FGloomAbilityInfo BottomInfo;
 };
+
 
 /**
  * 
@@ -99,7 +109,7 @@ public:
 
 	void GiveAbilities(UAbilitySystemComponent* AbilitySystemComponent) const;
 
-	void GiveGloomAbilities(UAbilitySystemComponent* AbilitySystemComponent, TArray<FGloomAbilityInfo>& OutInfo) const;
+	void GiveGloomAbilities(UAbilitySystemComponent* AbilitySystemComponent, TArray<FGloomAbilityCardInfo>& OutInfo) const;
 
 	int32 GetNumAbilities() const;
 	

@@ -26,7 +26,7 @@ public:
 		int32 SecondaryActionIndex;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Abilities")
-		TArray<FGloomAbilityInfo> AbilityList;
+		TArray<FGloomAbilityCardInfo> AbilityList;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Tags")
 		FGameplayTagContainer GameplayTags;
@@ -54,6 +54,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		void TryActivateAbility(int32 AbilityID, bool bIsTop);
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		int32 GetActionRange(int32 ActionID, bool bIsTop) const;
 
 	/////////TAGS
 	UFUNCTION(BlueprintCallable, Category = "Tags")

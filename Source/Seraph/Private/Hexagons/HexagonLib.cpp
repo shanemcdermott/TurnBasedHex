@@ -9,13 +9,14 @@ const FVector2D UHexagonLib::HexSize = FVector2D(HEX_HEIGHT * SQRT3DIV2, HEX_HEI
 const FVector2D UHexagonLib::HexHalfSize = FVector2D(HexSize.X * 0.5f, HexSize.Y * 0.5f);
 
 //DIRECTIONS
-const FIntPoint UHexagonLib::AxialForwardRight = FIntPoint(1,-1);
-const FIntPoint UHexagonLib::AxialRight = FIntPoint(1,0);
-const FIntPoint UHexagonLib::AxialBackwardRight = FIntPoint(0,1);
-const FIntPoint UHexagonLib::AxialBackwardLeft = FIntPoint(-1,1);
-const FIntPoint UHexagonLib::AxialLeft = FIntPoint(-1,0);
-const FIntPoint UHexagonLib::AxialForwardLeft = FIntPoint(0,-1);
-const TArray<FIntPoint> UHexagonLib::AxialDirections = 
+const FVector2D UHexagonLib::AxialRight = FVector2D(1,0);
+const FVector2D UHexagonLib::AxialForwardRight = FVector2D(1, 1);
+const FVector2D UHexagonLib::AxialForwardLeft = FVector2D(0, -1);
+const FVector2D UHexagonLib::AxialLeft = FVector2D(-1, 0);
+const FVector2D UHexagonLib::AxialBackwardLeft = FVector2D(-1,1);
+const FVector2D UHexagonLib::AxialBackwardRight = FVector2D(0, 1);
+
+const TArray<FVector2D> UHexagonLib::AxialDirections = 
 		{
 			AxialRight, 
 			AxialForwardRight, 
@@ -24,6 +25,23 @@ const TArray<FIntPoint> UHexagonLib::AxialDirections =
 			AxialBackwardLeft,
 			AxialBackwardRight
 		};
+
+const FVector UHexagonLib::CubeRight = FVector(1,-1, 0);
+const FVector UHexagonLib::CubeForwardRight = FVector(1, 0, -1);
+const FVector UHexagonLib::CubeForwardLeft = FVector(0, 1, -1);
+const FVector UHexagonLib::CubeLeft = FVector(-1, 1, 0);
+const FVector UHexagonLib::CubeBackwardLeft = FVector(-1, 0, 1);
+const FVector UHexagonLib::CubeBackwardRight = FVector(0, -1, 1);
+
+const TArray<FVector> UHexagonLib::CubeDirections =
+{
+	CubeRight,
+	CubeForwardRight,
+	CubeForwardLeft,
+	CubeLeft,
+	CubeBackwardLeft,
+	CubeBackwardRight
+};
 
 float UHexagonLib::Sqrt3Div2()
 {
@@ -51,10 +69,53 @@ void UHexagonLib::AxialToWorld(int32 X, int32 Y, FVector& OutWorldCoords)
 	
 }
 
+FVector UHexagonLib::AxialToWorld(const FIntPoint& InHex)
+{
+	FVector WorldCoords;
+
+	WorldCoords.X = HexSize.X * InHex.X;
+	//OutWorldCoords.Y = HexSize.Y * (Y + (X - (X & 1)) / 2);
+
+	if (InHex.X % 2 == 0)
+	{
+		WorldCoords.Y = HexSize.Y * InHex.Y;
+	}
+	else
+	{
+		WorldCoords.Y = HexSize.Y * InHex.Y - HexHalfSize.Y;
+	}
+
+	return WorldCoords;
+}
+
+FVector UHexagonLib::AxialToWorld(const FVector2D& InHex)
+{
+	FVector WorldCoords;
+
+	WorldCoords.X = HexSize.X * InHex.X;
+	//OutWorldCoords.Y = HexSize.Y * (Y + (X - (X & 1)) / 2);
+
+	if ((int)InHex.X % 2 == 0)
+	{
+		WorldCoords.Y = HexSize.Y * InHex.Y;
+	}
+	else
+	{
+		WorldCoords.Y = HexSize.Y * InHex.Y - HexHalfSize.Y;
+	}
+
+	return WorldCoords;
+}
+
 void UHexagonLib::WorldToAxial(const FVector& WorldCoords, FIntPoint& OutAxialCoords)
 {
 	OutAxialCoords.X = FMath::RoundToInt(WorldCoords.X / HexSize.X);
 	OutAxialCoords.Y = FMath::RoundToInt(WorldCoords.Y / HexSize.Y);
+}
+
+FIntPoint UHexagonLib::WorldToAxial(const FVector& WorldCoords)
+{
+	return FIntPoint(FMath::RoundToInt(WorldCoords.X / HexSize.X), FMath::RoundToInt(WorldCoords.Y / HexSize.Y));
 }
 
 void UHexagonLib::SnapToGrid(const FVector& WorldCoords, FVector& OutSnappedCoords, bool bKeepZ /*= true*/)
@@ -68,23 +129,37 @@ int32 UHexagonLib::LengthOf(const FIntPoint Point)
 	return Point.X * Point.Y;
 }
 
-FIntPoint UHexagonLib::AxialDirection(EAxialDirection Direction)
+FVector2D UHexagonLib::AxialDirection(EHexDirection Direction)
 {
 	return AxialDirections[(int32)Direction];
 }
 
-FIntPoint UHexagonLib::Neighbor(const FIntPoint& Hex, EAxialDirection Direction)
+FVector2D UHexagonLib::Neighbor(const FVector2D& Hex, EHexDirection Direction)
 {
-	FIntPoint Dir = AxialDirection(Direction);
-	return FIntPoint(Hex.X + Dir.X, Hex.Y + Dir.Y);
+	FVector2D Dir = AxialDirection(Direction);
+	return FVector2D(Hex.X + Dir.X, Hex.Y + Dir.Y);
 }
 
-void UHexagonLib::Neighbors(const FIntPoint& Hex, TArray<FIntPoint>& OutNeighbors, int32 Radius /*= 1*/)
+void UHexagonLib::Neighbors(const FVector2D& Hex, TArray<FVector2D>& OutNeighbors, int32 Radius /*= 1*/)
 {
 	OutNeighbors.SetNum(AxialDirections.Num());
-	for (int i = 0; i < OutNeighbors.Num(); i++)
+	for (int32 i = 0; i < OutNeighbors.Num(); i++)
 	{
-		OutNeighbors[i] = Neighbor(Hex, EAxialDirection(i));
+		OutNeighbors[i] = Neighbor(Hex, EHexDirection(i));
+	}
+}
+
+FVector UHexagonLib::WorldNeighbor(const FVector& WorldCoord, EHexDirection Direction)
+{
+	return AxialToWorld(Neighbor(WorldToAxial(WorldCoord), Direction));
+}
+
+void UHexagonLib::WorldNeighbors(const FVector& WorldCoords, TArray<FVector>& OutNeighbors, int32 Radius /*= 1*/)
+{
+	OutNeighbors.SetNum(AxialDirections.Num());
+	for (int32 i = 0; i < OutNeighbors.Num(); i++)
+	{
+		OutNeighbors[i] = WorldNeighbor(WorldCoords, EHexDirection(i));
 	}
 }
 

@@ -25,7 +25,7 @@ void UGloomAbilitySet::GiveAbilities(UAbilitySystemComponent* AbilitySystemCompo
 	}
 }
 
-void UGloomAbilitySet::GiveGloomAbilities(UAbilitySystemComponent* AbilitySystemComponent, TArray<FGloomAbilityInfo>& OutInfo) const
+void UGloomAbilitySet::GiveGloomAbilities(UAbilitySystemComponent* AbilitySystemComponent, TArray<FGloomAbilityCardInfo>& OutInfo) const
 {
 	OutInfo.SetNum(Abilities.Num());
 	int i = 0;
@@ -33,11 +33,11 @@ void UGloomAbilitySet::GiveGloomAbilities(UAbilitySystemComponent* AbilitySystem
 	{
 		if (BindInfo.TopAbilityClass)
 		{
-			OutInfo[i].TopHandle = AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BindInfo.TopAbilityClass->GetDefaultObject<UGameplayAbility>(), 1, (int32)BindInfo.TopCommand));
+			OutInfo[i].TopInfo.Handle = AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BindInfo.TopAbilityClass->GetDefaultObject<UGameplayAbility>(), 1, (int32)BindInfo.TopCommand));
 		}
 		if (BindInfo.BottomAbilityClass)
 		{
-			OutInfo[i].BottomHandle = AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BindInfo.BottomAbilityClass->GetDefaultObject<UGameplayAbility>(), 1, (int32)BindInfo.BottomCommand));
+			OutInfo[i].BottomInfo.Handle = AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BindInfo.BottomAbilityClass->GetDefaultObject<UGameplayAbility>(), 1, (int32)BindInfo.BottomCommand));
 		}
 	}
 }

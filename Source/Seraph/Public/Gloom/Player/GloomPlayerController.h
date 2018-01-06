@@ -104,4 +104,5 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_SetReadyToStartRound(bool bIsReady);
+
 };

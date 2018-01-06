@@ -6,42 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "HexGraph.generated.h"
 
-USTRUCT(BlueprintType)
-struct FHexNode
-{
-	GENERATED_USTRUCT_BODY()
+class AHexNode;
 
-public:
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HexNode")
-		AActor* Occupant;
-
-	FHexNode()
-		:Occupant(nullptr)
-	{}
-
-	bool Contains(AActor* PossibleOccupant) const
-	{
-		return PossibleOccupant != nullptr && PossibleOccupant == Occupant;
-	}
-
-	bool Add(AActor* NewOccupant)
-	{
-		if (Occupant) return false;
-		Occupant = NewOccupant;
-		return true;
-	}
-
-	void RemoveOccupant()
-	{
-		Occupant = nullptr;
-	}
-
-	bool IsEmpty() const
-	{
-		return Occupant == nullptr;
-	}
-};
 
 UCLASS()
 class SERAPH_API AHexGraph : public AActor
@@ -51,11 +17,11 @@ class SERAPH_API AHexGraph : public AActor
 private:
 
 	int32 IndexOf(const FIntPoint& InHex) const;
-
+	int32 IndexOf(const FVector2D& InHex) const;
 protected:
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "HexGraph")
-		TArray<FHexNode> Nodes;
+		TArray<AHexNode*> Nodes;
 
 public:	
 
@@ -69,16 +35,10 @@ public:
 		bool IsValidHex(const FIntPoint& InHex) const;
 
 	UFUNCTION(BlueprintCallable, Category = "HexGraph")
-		void Resize(const FIntPoint& NewDimensions);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_Resize(const FIntPoint& NewDimensions);
+		AHexNode* GetNode(const FVector2D& InCoords);
 
 	UFUNCTION(BlueprintCallable, Category = "HexGraph")
-		void InitNodes();
-
-	UFUNCTION(BlueprintCallable, Category = "HexGraph")
-		FHexNode& GetHexNode(const FIntPoint& InCoords);
+		AHexNode* GetHexNode(const FIntPoint& InCoords);
 	
 	UFUNCTION(BlueprintCallable, Category = "HexGraph")
 		bool AddActor(AActor* ActorToAdd);
@@ -91,4 +51,7 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_MoveActor(AActor* ActorToMove, const FIntPoint& Destination);
+
+	UFUNCTION(BlueprintCallable, Category = "HexGraph")
+		void GetNeighbors(const FVector& Center, TArray<AHexNode*>& OutNeighbors);
 };
