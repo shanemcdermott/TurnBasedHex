@@ -16,6 +16,31 @@ AGloomPlayerController::AGloomPlayerController(const FObjectInitializer& ObjectI
 	Initiative = 99;
 }
 
+void AGloomPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AGloomPlayerController, bIsReadyToStartScenario);
+	DOREPLIFETIME(AGloomPlayerController, bIsReadyToStartRound);
+	DOREPLIFETIME(AGloomPlayerController, Initiative);
+	DOREPLIFETIME(AGloomPlayerController, PawnClass);
+	DOREPLIFETIME(AGloomPlayerController, PlayerId);
+}
+
+uint8 AGloomPlayerController::GetInitiativeValue_Implementation() const
+{
+	return Initiative;
+}
+
+FString AGloomPlayerController::GetCharacterName_Implementation() const
+{
+	AGASCharacter* GP = Cast<AGASCharacter>(GetPawn());
+	if (GP)
+		return GP->GetName();
+
+	return "Unknown Character";
+}
+
 bool AGloomPlayerController::IsReadyToStartScenario() const
 {
 	return bIsReadyToStartScenario;
@@ -48,16 +73,6 @@ void AGloomPlayerController::ServerSetPawnClass_Implementation(TSubclassOf<AGASC
 	SetPawnClass(InPawnClass);
 }
 
-void AGloomPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AGloomPlayerController, bIsReadyToStartScenario);
-	DOREPLIFETIME(AGloomPlayerController, bIsReadyToStartRound);
-	DOREPLIFETIME(AGloomPlayerController, Initiative);
-	DOREPLIFETIME(AGloomPlayerController, PawnClass);
-	DOREPLIFETIME(AGloomPlayerController, PlayerId);
-}
 
 void AGloomPlayerController::PerformScenarioSetup_Implementation()
 {
@@ -206,11 +221,6 @@ bool AGloomPlayerController::Server_SetReadyToStartRound_Validate(bool bIsReady)
 void AGloomPlayerController::Server_SetReadyToStartRound_Implementation(bool bIsReady)
 {
 	SetReadyToStartRound(bIsReady);
-}
-
-uint8 AGloomPlayerController::GetInitiativeValue() const
-{
-	return Initiative;
 }
 
 void AGloomPlayerController::SetInitiative(uint8 Init)

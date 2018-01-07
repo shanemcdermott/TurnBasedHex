@@ -16,11 +16,6 @@ UCLASS()
 class SERAPH_API AGloomGameMode : public AGameMode, public IScenarioInterface
 {
 	GENERATED_UCLASS_BODY()
-
-private:
-
-		UPROPERTY()
-		TArray<AGloomPlayerController*> ScenarioPlayers;
 	
 public:
 
@@ -37,11 +32,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 		void BeginRound();
 
-	UFUNCTION(BlueprintNativeEvent)
-		void BeginTurn();
-
-	UFUNCTION(BlueprintNativeEvent)
-		void EndTurn();
+	virtual void BeginTurn_Implementation() override;
+	virtual void EndTurn_Implementation() override;
 
 	UFUNCTION(BlueprintNativeEvent)
 		void PerformRoundCleanup();

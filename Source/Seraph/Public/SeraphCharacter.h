@@ -89,7 +89,7 @@ public:
 	FTimerHandle PlayDyingTimerHandle;
 	// -------------------------------------------------------------------------------------------
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Personality")
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Personality")
 		FString Name;
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Personality")

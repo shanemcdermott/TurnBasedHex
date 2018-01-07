@@ -10,3 +10,13 @@ AGloomHUD::AGloomHUD(const FObjectInitializer& ObjectInitializer)
 {
 
 }
+
+void AGloomHUD::BeginTurn_Implementation()
+{
+
+}
+
+void AGloomHUD::EndTurn_Implementation()
+{
+
+}

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "ScenarioInterface.h"
+#include "Gloom/Interfaces/ScenarioControllerInterface.h"
 #include "GloomPlayerController.generated.h"
 
 class AGASCharacter;
@@ -13,7 +14,7 @@ class AGloomHUD;
  * 
  */
 UCLASS()
-class SERAPH_API AGloomPlayerController : public APlayerController, public IScenarioInterface
+class SERAPH_API AGloomPlayerController : public APlayerController, public IScenarioInterface, public IScenarioControllerInterface
 {
 	GENERATED_UCLASS_BODY()
 	
@@ -38,8 +39,9 @@ public:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Scenario")
 		uint8 Initiative;
 
-	UFUNCTION(BlueprintCallable, Category = "Initiative")
-		uint8 GetInitiativeValue() const;
+	
+	virtual uint8 GetInitiativeValue_Implementation() const override;
+	virtual FString GetCharacterName_Implementation() const override;
 
 	UFUNCTION(BlueprintCallable, Category = "Initiative")
 		void SetInitiative(uint8 Init);
@@ -54,14 +56,11 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerSetPawnClass(TSubclassOf<AGASCharacter> InPawnClass);
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const override;
-
-
 	UFUNCTION(BlueprintNativeEvent)
 		void PerformScenarioSetup();
 
 	UFUNCTION(BlueprintCallable, Category = "Scenario")
-		virtual bool IsReadyToStartScenario() const override;
+	virtual bool IsReadyToStartScenario() const override;
 
 	UFUNCTION(BlueprintNativeEvent)
 		void PrepareForRound();
@@ -72,14 +71,12 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 		void BeginRound();
 
-	UFUNCTION(BlueprintNativeEvent)
-		void BeginTurn();
+		virtual void BeginTurn_Implementation() override;
 
 	UFUNCTION(Client, Reliable)
 		void Client_BeginTurn();
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Scenario")
-		void EndTurn();
+	virtual void EndTurn_Implementation() override;
 
 	UFUNCTION(Client, Reliable)
 		void Client_EndTurn();

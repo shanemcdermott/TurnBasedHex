@@ -8,18 +8,18 @@
 
 
 // This class does not need to be modified.
-UINTERFACE(Blueprintable, MinimalAPI)
+UINTERFACE(Blueprintable)
 class UScenarioInterface : public UInterface
 {
-	GENERATED_BODY()
+	GENERATED_UINTERFACE_BODY()
 };
 
 /**
  * 
  */
-class SERAPH_API IScenarioInterface
+class IScenarioInterface
 {
-	GENERATED_BODY()
+	GENERATED_IINTERFACE_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
@@ -39,10 +39,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scenario")
 		void BeginRound();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Scenario")
+	UFUNCTION(BlueprintNativeEvent, Category = "Scenario")
 		void BeginTurn();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Scenario")
+	UFUNCTION(BlueprintNativeEvent, Category = "Scenario")
 		void EndTurn();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scenario")

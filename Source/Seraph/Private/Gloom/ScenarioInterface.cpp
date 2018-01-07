@@ -2,7 +2,9 @@
 
 #include "ScenarioInterface.h"
 
-
+UScenarioInterface::UScenarioInterface(const FObjectInitializer& ObjectInitializer)
+	:Super(ObjectInitializer)
+{}
 // Add default functionality here for any IScenarioInterface functions that are not pure virtual.
 
 bool IScenarioInterface::IsReadyToStartScenario() const

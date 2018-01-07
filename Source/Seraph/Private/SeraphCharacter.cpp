@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "UnrealNetwork.h"
 
 #include "AbilitySystemGlobals.h"
 #include "GameplayCueManager.h"
@@ -62,6 +63,13 @@ ASeraphCharacter::ASeraphCharacter(const FObjectInitializer& ObjectInitializer)
 
 	bIsDying = false;
 
+}
+
+void ASeraphCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASeraphCharacter, Name);
 }
 
 void ASeraphCharacter::BeginPlay()

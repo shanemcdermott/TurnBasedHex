@@ -17,7 +17,10 @@ class SERAPH_API AGloomHUD : public AHUD, public IScenarioInterface
 	
 public:
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD|Messages")
+		void OnReceiveAnnouncement(const FString& InAnnouncement);
 
-
+	virtual void BeginTurn_Implementation() override;
+	virtual void EndTurn_Implementation() override;
 
 };

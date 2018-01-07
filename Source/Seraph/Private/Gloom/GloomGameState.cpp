@@ -14,6 +14,17 @@ AGloomGameState::AGloomGameState(const FObjectInitializer& ObjectInitializer)
 	RoundNumber = 0;
 }
 
+void AGloomGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AGloomGameState, ScenarioControllers);
+	DOREPLIFETIME(AGloomGameState, ScenarioState);
+	DOREPLIFETIME(AGloomGameState, RoundNumber);
+	DOREPLIFETIME(AGloomGameState, CurrentTurnIndex);
+	DOREPLIFETIME(AGloomGameState, HexGraph);
+}
+
 void AGloomGameState::ProcessScenarioStateChange()
 {
 	AGloomGameMode* GM = Cast<AGloomGameMode>(GetWorld()->GetAuthGameMode());
@@ -138,6 +149,19 @@ void AGloomGameState::Multicast_BeginRound_Implementation()
 	}
 }
 
+void AGloomGameState::Multicast_StartTurn_Implementation(int32 CurrentTurn)
+{
+	CurrentTurnIndex = CurrentTurn;
+	if (ScenarioControllers[CurrentTurnIndex]->Implements<UScenarioInterface>())
+	{
+		IScenarioInterface::Execute_BeginTurn(ScenarioControllers[CurrentTurnIndex]);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Controller does not implement scenario interface!"));
+	}
+}
+
 void AGloomGameState::Multicast_StartRoundPreparation_Implementation()
 {
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
@@ -205,12 +229,3 @@ bool AGloomGameState::ServerSetScenarioState_Validate(EScenarioState State)
 	return true;
 }
 
-void AGloomGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AGloomGameState, ScenarioState);
-	DOREPLIFETIME(AGloomGameState, RoundNumber);
-	DOREPLIFETIME(AGloomGameState, CurrentTurnIndex);
-	DOREPLIFETIME(AGloomGameState, HexGraph);
-}

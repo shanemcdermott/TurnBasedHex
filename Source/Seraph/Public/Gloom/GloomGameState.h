@@ -7,6 +7,7 @@
 #include "GloomGameState.generated.h"
 
 class AHexGraph;
+class AController;
 
 UENUM(BlueprintType)
 enum class EScenarioState : uint8
@@ -33,6 +34,9 @@ private:
 	void ProcessScenarioStateChange();
 
 public:
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Scenario")
+		TArray<AController*> ScenarioControllers;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Scenario")
 		EScenarioState ScenarioState;
@@ -75,6 +79,9 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 		void Multicast_BeginRound();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Multicast_StartTurn(int32 CurrentTurn);
 
 	UFUNCTION(NetMulticast, Reliable)
 		void Multicast_PerformRoundCleanup();

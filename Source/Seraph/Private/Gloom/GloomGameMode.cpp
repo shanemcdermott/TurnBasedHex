@@ -10,9 +10,9 @@
 
 struct FSortByInitiative
 {
-	bool operator()(const AGloomPlayerController* A, const AGloomPlayerController* B) const
+	bool operator()(const AController* A, const AController* B) const
 	{
-		return A->GetInitiativeValue() > B->GetInitiativeValue();
+		return IScenarioControllerInterface::Execute_GetInitiativeValue(A) > IScenarioControllerInterface::Execute_GetInitiativeValue(B);
 	}
 };
 
@@ -30,7 +30,7 @@ void AGloomGameMode::BeginPlay()
 
 void AGloomGameMode::CalcTurnOrder()
 {
-	Algo::Sort(ScenarioPlayers, FSortByInitiative());
+	Algo::Sort(GetGameState<AGloomGameState>()->ScenarioControllers, FSortByInitiative());
 }
 
 void AGloomGameMode::PerformScenarioSetup_Implementation()
@@ -38,14 +38,10 @@ void AGloomGameMode::PerformScenarioSetup_Implementation()
 	AGloomGameState* GS = GetGameState<AGloomGameState>();
 	GS->Multicast_StartScenarioSetup();
 	
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+	for (FConstControllerIterator It = GetWorld()->GetControllerIterator(); It; It++)
 	{
-		AGloomPlayerController* PC = Cast<AGloomPlayerController>(It->Get());
-		if (PC)
-		{
-			ScenarioPlayers.Add(PC);
-			GS->HexGraph->AddActor(PC->GetGloomPawn());
-		}
+		GS->ScenarioControllers.Add(It->Get());
+		GS->HexGraph->AddActor(It->Get()->GetPawn());
 	}
 
 	GS->SetScenarioState(EScenarioState::RoundSetup);
@@ -62,26 +58,23 @@ void AGloomGameMode::BeginRound_Implementation()
 	CalcTurnOrder();
 	AGloomGameState* GS = GetGameState<AGloomGameState>();
 	GS->Multicast_BeginRound();
-	BeginTurn();
+	GS->Multicast_StartTurn(0);
 }
 
 void AGloomGameMode::BeginTurn_Implementation()
 {
-	int32 TurnIndex = GetGameState<AGloomGameState>()->CurrentTurnIndex;
-	ScenarioPlayers[TurnIndex]->Execute_BeginTurn(ScenarioPlayers[TurnIndex]);
+	
 }
-
 
 void AGloomGameMode::EndTurn_Implementation()
 {
 	AGloomGameState* GS = GetGameState<AGloomGameState>();
 	int32 Turn = GS->CurrentTurnIndex;
-	if (Turn + 1 >= ScenarioPlayers.Num())
+	if (Turn + 1 >= GS->ScenarioControllers.Num())
 		GS->SetScenarioState(EScenarioState::RoundCleanup);
 	else
 	{
-		GS->CurrentTurnIndex++;
-		BeginTurn();
+		GS->Multicast_StartTurn(Turn + 1);
 	}
 
 }
