@@ -108,6 +108,11 @@ void AGASCharacter::Server_SetAbilityLocation_Implementation(int32 AbilityID, EA
 	SetAbilityLocation(AbilityID, Location);
 }
 
+void AGASCharacter::GetAbilityCardInfo(int32 ActionID, FGloomAbilityCardInfo& OutAbilityCardInfo) const
+{
+	OutAbilityCardInfo = AbilityList[ActionID];
+}
+
 void AGASCharacter::TryActivateAbility(int32 AbilityID, bool bIsTop)
 {
 	if(bIsTop)
@@ -204,7 +209,32 @@ void AGASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(AGASCharacter, GameplayTags);
 	DOREPLIFETIME(AGASCharacter, LeadingActionIndex);
 	DOREPLIFETIME(AGASCharacter, SecondaryActionIndex);
+	DOREPLIFETIME(AGASCharacter, TargetActor);
 }
 
+AActor* AGASCharacter::GetTarget()
+{
+	return TargetActor;
+}
 
+void AGASCharacter::SetTarget(AActor* NewTarget)
+{
+	if (Role == ROLE_Authority)
+	{
+		TargetActor = NewTarget;
+	}
+	else
+	{
+		Server_SetTarget(NewTarget);
+	}
+}
 
+bool AGASCharacter::Server_SetTarget_Validate(AActor* NewTarget)
+{
+	return true;
+}
+
+void AGASCharacter::Server_SetTarget_Implementation(AActor* NewTarget)
+{
+	SetTarget(NewTarget);
+}

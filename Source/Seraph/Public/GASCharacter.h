@@ -5,13 +5,14 @@
 #include "SeraphCharacter.h"
 #include "GASTypes.h"
 #include "GloomAbilitySet.h"
+#include "Gloom/Interfaces/TargetsHexNode.h"
 #include "GASCharacter.generated.h"
 
 
 class AGameNode;
 
 UCLASS()
-class SERAPH_API AGASCharacter : public ASeraphCharacter
+class SERAPH_API AGASCharacter : public ASeraphCharacter, public ITargetsHexNode
 {
 	GENERATED_UCLASS_BODY()
 
@@ -52,6 +53,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_SetAbilityLocation(int32 AbilityID, EAbilityLocation Location);
 
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities|Cards")
+		void GetAbilityCardInfo(int32 ActionID, FGloomAbilityCardInfo& OutAbilityCardInfo) const;
 	////////////////COMBAT
 		
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
@@ -59,6 +63,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		int32 GetActionRange(int32 ActionID, bool bIsTop) const;
+
+	//virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
 
 	/////////TAGS
 	UFUNCTION(BlueprintCallable, Category = "Tags")
@@ -80,4 +86,18 @@ public:
 		void Server_EndTurn();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	//HEX TARGETS
+
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Targeting")
+		AActor* TargetActor;
+
+	UFUNCTION(BlueprintCallable, Category = "Targeting")
+	virtual AActor* GetTarget() override;
+
+	UFUNCTION(BlueprintCallable, Category = "Targeting")
+	virtual void SetTarget(AActor* NewTarget) override;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_SetTarget(AActor* NewTarget);
 };
