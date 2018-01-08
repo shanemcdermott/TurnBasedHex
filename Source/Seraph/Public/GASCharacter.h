@@ -8,7 +8,7 @@
 #include "GASCharacter.generated.h"
 
 
-
+class AGameNode;
 
 UCLASS()
 class SERAPH_API AGASCharacter : public ASeraphCharacter
@@ -52,6 +52,8 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_SetAbilityLocation(int32 AbilityID, EAbilityLocation Location);
 
+	////////////////COMBAT
+		
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		void TryActivateAbility(int32 AbilityID, bool bIsTop);
 

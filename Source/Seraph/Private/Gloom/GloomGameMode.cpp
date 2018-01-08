@@ -7,6 +7,7 @@
 #include "GloomGameState.h"
 #include "Hexagons/HexGraph.h"
 #include "Player/GloomPlayerController.h"
+#include "AI/GloomAIController.h"
 
 struct FSortByInitiative
 {
@@ -41,16 +42,16 @@ void AGloomGameMode::PerformScenarioSetup_Implementation()
 	for (FConstControllerIterator It = GetWorld()->GetControllerIterator(); It; It++)
 	{
 		GS->ScenarioControllers.Add(It->Get());
-		GS->HexGraph->AddActor(It->Get()->GetPawn());
 	}
 
 	GS->SetScenarioState(EScenarioState::RoundSetup);
 }
 
-void AGloomGameMode::PrepareForRound_Implementation()
+void AGloomGameMode::PrepareForRound()
 {
 	AGloomGameState* GS = GetGameState<AGloomGameState>();
 	GS->Multicast_StartRoundPreparation();
+	Execute_OnPrepareForRound(this);
 }
 
 void AGloomGameMode::BeginRound_Implementation()
@@ -58,23 +59,32 @@ void AGloomGameMode::BeginRound_Implementation()
 	CalcTurnOrder();
 	AGloomGameState* GS = GetGameState<AGloomGameState>();
 	GS->Multicast_BeginRound();
-	GS->Multicast_StartTurn(0);
+	Execute_BeginTurn(this);
 }
 
 void AGloomGameMode::BeginTurn_Implementation()
 {
+	AGloomGameState* GS = GetGameState<AGloomGameState>();
+	GS->CurrentTurnIndex++;
+	GS->Multicast_TurnStart();
 	
+	AGloomAIController* TurnController = Cast<AGloomAIController>(GS->GetCurrentTurnController());
+	if (TurnController)
+	{
+		TurnController->Execute_BeginTurn(TurnController);
+	}
 }
 
 void AGloomGameMode::EndTurn_Implementation()
 {
 	AGloomGameState* GS = GetGameState<AGloomGameState>();
-	int32 Turn = GS->CurrentTurnIndex;
-	if (Turn + 1 >= GS->ScenarioControllers.Num())
+	GS->Multicast_TurnEnd();
+
+	if (GS->GetTurnsRemaining() <= 1)
 		GS->SetScenarioState(EScenarioState::RoundCleanup);
 	else
 	{
-		GS->Multicast_StartTurn(Turn + 1);
+		Execute_BeginTurn(this);
 	}
 
 }

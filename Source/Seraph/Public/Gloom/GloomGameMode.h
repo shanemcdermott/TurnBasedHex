@@ -26,8 +26,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 		void PerformScenarioSetup();
 
-	UFUNCTION(BlueprintNativeEvent)
-		void PrepareForRound();
+	UFUNCTION()
+		virtual void PrepareForRound() override;
 
 	UFUNCTION(BlueprintNativeEvent)
 		void BeginRound();

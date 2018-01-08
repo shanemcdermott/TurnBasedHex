@@ -20,7 +20,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD|Messages")
 		void OnReceiveAnnouncement(const FString& InAnnouncement);
 
+	virtual void PrepareForRound() override;
 	virtual void BeginTurn_Implementation() override;
 	virtual void EndTurn_Implementation() override;
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD|Messages")
+		void OnTurnEnd();
 };

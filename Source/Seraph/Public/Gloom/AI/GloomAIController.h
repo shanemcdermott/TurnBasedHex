@@ -8,6 +8,8 @@
 #include "Interfaces/ScenarioControllerInterface.h"
 #include "GloomAIController.generated.h"
 
+class AGASCharacter;
+class AGloomAICharacter;
 /**
  * 
  */
@@ -21,10 +23,18 @@ public:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Scenario")
 		uint8 Initiative;
 
-	virtual uint8 GetInitiativeValue_Implementation() const override;
+	UFUNCTION(BlueprintCallable, Category = "Character")
+		AGASCharacter* GetGloomPawn() const;
+	
 	virtual FString GetCharacterName_Implementation() const override;
+	virtual uint8 GetInitiativeValue_Implementation() const override;
 
+	virtual void PrepareForRound() override;
 	virtual void BeginTurn_Implementation() override;
+
+	UFUNCTION(BlueprintCallable, Category = "Turns")
+		void EndCharacterTurn();
+
 	virtual void EndTurn_Implementation() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Initiative")
@@ -33,4 +43,6 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerSetInitiative(uint8 Init);
 
+	UFUNCTION()
+		virtual void SelectActionForTurn();
 };

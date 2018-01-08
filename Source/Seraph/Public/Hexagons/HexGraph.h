@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Graphs/GameGraph.h"
 #include "HexGraph.generated.h"
 
 class AHexNode;

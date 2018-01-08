@@ -69,6 +69,18 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerConsiderStartingRound();
 
+	//////GETTERS
+
+	UFUNCTION(BlueprintCallable, Category = "Scenario|Gloom")
+		AController* GetCurrentTurnController() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Scenario|Gloom")
+		bool IsLocalPlayersTurn() const;
+
+	/*Returns the number of characters that still need to take their turn this round (including the current turn).*/
+	UFUNCTION(BlueprintCallable, Category = "Scenario|Gloom")
+		int32 GetTurnsRemaining() const;
+
 	//////MULTICASTS
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -81,7 +93,10 @@ public:
 		void Multicast_BeginRound();
 
 	UFUNCTION(NetMulticast, Reliable)
-		void Multicast_StartTurn(int32 CurrentTurn);
+		void Multicast_TurnStart();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Multicast_TurnEnd();
 
 	UFUNCTION(NetMulticast, Reliable)
 		void Multicast_PerformRoundCleanup();

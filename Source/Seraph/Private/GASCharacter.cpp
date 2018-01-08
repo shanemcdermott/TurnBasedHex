@@ -2,11 +2,13 @@
 
 #include "GASCharacter.h"
 #include "UnrealNetwork.h"
+#include "Graphs/GameNode.h"
 #include "GloomGameMode.h"
 #include "GloomPlayerController.h"
 #include "GloomGameState.h"
 #include "AbilitySystemComponent.h"
 #include "ScenarioInterface.h"
+#include "AI/GloomAIController.h"
 
 // Sets default values
 AGASCharacter::AGASCharacter(const FObjectInitializer& ObjectInitializer)
@@ -27,10 +29,22 @@ void AGASCharacter::SetLeadingAction(int32 ActionID)
 	if (Role == ROLE_Authority)
 	{
 		LeadingActionIndex = ActionID;
-		AGloomPlayerController* PC = Cast<AGloomPlayerController>(GetController());
-		if (PC)
+
+		if (GetController()->IsPlayerController())
 		{
-			PC->SetInitiative(AbilityList[LeadingActionIndex].Priority);
+			AGloomPlayerController* PC = Cast<AGloomPlayerController>(GetController());
+			if (PC)
+			{
+				PC->SetInitiative(AbilityList[LeadingActionIndex].Priority);
+			}
+		}
+		else
+		{
+			AGloomAIController* AIC = Cast<AGloomAIController>(GetController());
+			if (AIC)
+			{
+				AIC->SetInitiative(AbilityList[LeadingActionIndex].Priority);
+			}
 		}
 	}
 	else

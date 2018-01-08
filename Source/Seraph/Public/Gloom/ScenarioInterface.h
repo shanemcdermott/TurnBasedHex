@@ -30,8 +30,12 @@ public:
 	UFUNCTION()
 		virtual bool IsReadyToStartScenario() const;
 
+	
+	virtual void PrepareForRound();
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scenario")
-		void PrepareForRound();
+		void OnPrepareForRound();
+		
 
 	UFUNCTION()
 		virtual bool IsReadyToStartRound() const;

@@ -3,34 +3,29 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Graphs/GameNode.h"
 #include "HexNode.generated.h"
 
+class UMaterialInstanceDynamic;
+
 UCLASS()
-class SERAPH_API AHexNode : public AActor
+class SERAPH_API AHexNode : public AGameNode
 {
 	GENERATED_UCLASS_BODY()
 	
-private:
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display")
+		UMaterialInstanceDynamic* NodeMaterial;
 
-	UPROPERTY(Replicated)
-		AActor* Occupant;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display")
+		FLinearColor NodeColor;
 
-public:	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display")
+		float NodeOpacity;
 
-	UFUNCTION(BlueprintCallable, Category = "HexNode")
-	bool Contains(AActor* PossibleOccupant) const;
-	
-	UFUNCTION(BlueprintCallable, Category = "HexNode")
-		AActor* GetOccupant();
+	UFUNCTION(BlueprintCallable, Category = "HexNode|Display")
+		void SetColor(const FLinearColor& InColor);
 
-	UFUNCTION(BlueprintCallable, Category = "HexNode")
-		bool SetOccupant(AActor* NewOccupant);
-
-	UFUNCTION(BlueprintCallable, Category = "HexNode")
-		void RemoveOccupant();
-
-	UFUNCTION(BlueprintCallable, Category = "HexNode")
-		bool IsEmpty() const;
-	
+	UFUNCTION(BlueprintCallable, Category = "HexNode|Display")
+		void SetOpacity(float InOpacity);
 };

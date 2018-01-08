@@ -11,6 +11,11 @@ AGloomHUD::AGloomHUD(const FObjectInitializer& ObjectInitializer)
 
 }
 
+void AGloomHUD::PrepareForRound()
+{
+	Execute_OnPrepareForRound(this);
+}
+
 void AGloomHUD::BeginTurn_Implementation()
 {
 

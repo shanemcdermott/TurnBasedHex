@@ -25,6 +25,21 @@ void AGloomGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutL
 	DOREPLIFETIME(AGloomGameState, HexGraph);
 }
 
+AController* AGloomGameState::GetCurrentTurnController() const
+{
+	return ScenarioControllers[CurrentTurnIndex];
+}
+
+bool AGloomGameState::IsLocalPlayersTurn() const
+{
+	 return GetCurrentTurnController() == GetWorld()->GetFirstPlayerController();
+}
+
+int32 AGloomGameState::GetTurnsRemaining() const
+{
+	return ScenarioControllers.Num() - CurrentTurnIndex;
+}
+
 void AGloomGameState::ProcessScenarioStateChange()
 {
 	AGloomGameMode* GM = Cast<AGloomGameMode>(GetWorld()->GetAuthGameMode());
@@ -38,7 +53,7 @@ void AGloomGameState::ProcessScenarioStateChange()
 			break;
 		case EScenarioState::RoundSetup:
 			UE_LOG(LogTemp, Log, TEXT("Preparing for Round %d"), RoundNumber + 1);
-			GM->Execute_PrepareForRound(GM);
+			GM->PrepareForRound();
 			break;
 		case EScenarioState::MidRound:
 			RoundNumber++;
@@ -149,16 +164,27 @@ void AGloomGameState::Multicast_BeginRound_Implementation()
 	}
 }
 
-void AGloomGameState::Multicast_StartTurn_Implementation(int32 CurrentTurn)
+void AGloomGameState::Multicast_TurnStart_Implementation()
 {
-	CurrentTurnIndex = CurrentTurn;
-	if (ScenarioControllers[CurrentTurnIndex]->Implements<UScenarioInterface>())
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 	{
-		IScenarioInterface::Execute_BeginTurn(ScenarioControllers[CurrentTurnIndex]);
+		AGloomPlayerController* PC = Cast<AGloomPlayerController>(It->Get());
+		if (PC && PC->IsLocalController())
+		{
+			PC->AnnounceTurnStart();
+		}
 	}
-	else
+}
+
+void AGloomGameState::Multicast_TurnEnd_Implementation()
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Controller does not implement scenario interface!"));
+		AGloomPlayerController* PC = Cast<AGloomPlayerController>(It->Get());
+		if (PC && PC->IsLocalController())
+		{
+			PC->AnnounceTurnEnd();
+		}
 	}
 }
 
@@ -169,7 +195,7 @@ void AGloomGameState::Multicast_StartRoundPreparation_Implementation()
 		AGloomPlayerController* PC = Cast<AGloomPlayerController>(It->Get());
 		if (PC && PC->IsLocalController())
 		{
-			PC->Execute_PrepareForRound(PC);
+			PC->PrepareForRound();
 		}
 	}
 }

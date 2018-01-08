@@ -4,6 +4,7 @@
 #include "UnrealNetwork.h"
 
 #include "GloomGameMode.h"
+#include "GASCharacter.h"
 #include "GloomAICharacter.h"
 
 AGloomAIController::AGloomAIController(const FObjectInitializer& ObjectInitializer)
@@ -19,22 +20,44 @@ void AGloomAIController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AGloomAIController, Initiative);
 }
 
-uint8 AGloomAIController::GetInitiativeValue_Implementation() const
+AGASCharacter * AGloomAIController::GetGloomPawn() const
 {
-	return Initiative;
+	if (GetPawn())
+	{
+		return Cast<AGASCharacter>(GetPawn());
+	}
+	return nullptr;
 }
 
 FString AGloomAIController::GetCharacterName_Implementation() const
 {
-	AGloomAICharacter* GP = Cast<AGloomAICharacter>(GetPawn());
+	AGASCharacter* GP = Cast<AGASCharacter>(GetPawn());
 	if (GP)
 		return GP->GetName();
 
 	return "Unknown Character";
 }
 
+uint8 AGloomAIController::GetInitiativeValue_Implementation() const
+{
+	return Initiative;
+}
+
+void AGloomAIController::PrepareForRound()
+{
+	SelectActionForTurn();
+	Execute_OnPrepareForRound(this);
+}
 
 void AGloomAIController::BeginTurn_Implementation()
+{
+	AGASCharacter* GloomPawn = GetGloomPawn();
+	if (GloomPawn)
+		GloomPawn->TryActivateAbility(GloomPawn->LeadingActionIndex, true);
+	//Execute_EndTurn(this);
+}
+
+void AGloomAIController::EndCharacterTurn()
 {
 	Execute_EndTurn(this);
 }
@@ -60,6 +83,16 @@ void AGloomAIController::SetInitiative(uint8 Init)
 	else
 	{
 		ServerSetInitiative(Init);
+	}
+}
+
+void AGloomAIController::SelectActionForTurn()
+{
+	AGASCharacter* GloomPawn = GetGloomPawn();
+	if (GloomPawn)
+	{
+		int32 ActionID = FMath::RandRange(0, GloomPawn->AbilityList.Num()-1);
+		GloomPawn->SetLeadingAction(ActionID);
 	}
 }
 

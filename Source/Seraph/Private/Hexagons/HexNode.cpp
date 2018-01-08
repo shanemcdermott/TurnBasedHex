@@ -1,7 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HexNode.h"
 #include "UnrealNetwork.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 // Sets default values
 AHexNode::AHexNode(const FObjectInitializer& ObjectInitializer)
@@ -13,39 +13,20 @@ AHexNode::AHexNode(const FObjectInitializer& ObjectInitializer)
 	SetReplicates(true);
 }
 
-
-
-
-bool AHexNode::Contains(AActor* PossibleOccupant) const
+void AHexNode::SetColor(const FLinearColor& InColor)
 {
-	return PossibleOccupant == Occupant;
+	if (NodeMaterial)
+	{
+		NodeColor = InColor;
+		NodeMaterial->SetVectorParameterValue(FName("Color"), NodeColor);
+	}
 }
 
-AActor* AHexNode::GetOccupant()
+void AHexNode::SetOpacity(float InOpacity)
 {
-	return Occupant;
-}
-
-bool AHexNode::SetOccupant(AActor* NewOccupant)
-{
-	if (Occupant || NewOccupant == nullptr) return false;
-	Occupant = NewOccupant;
-	return true;
-}
-
-void AHexNode::RemoveOccupant()
-{
-	Occupant = nullptr;
-}
-
-bool AHexNode::IsEmpty() const
-{
-	return Occupant == nullptr;
-}
-
-void AHexNode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AHexNode, Occupant);
+	if (NodeMaterial)
+	{
+		NodeOpacity = InOpacity;
+		NodeMaterial->SetScalarParameterValue(FName("Opacity"), NodeOpacity);
+	}
 }

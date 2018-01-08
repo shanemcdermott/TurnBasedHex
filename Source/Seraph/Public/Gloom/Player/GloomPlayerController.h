@@ -62,8 +62,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scenario")
 	virtual bool IsReadyToStartScenario() const override;
 
-	UFUNCTION(BlueprintNativeEvent)
-		void PrepareForRound();
+
+		virtual void PrepareForRound() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Scenario")
 		virtual bool IsReadyToStartRound() const override;
@@ -71,11 +71,11 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 		void BeginRound();
 
-		virtual void BeginTurn_Implementation() override;
+	void AnnounceTurnStart();
+	virtual void BeginTurn_Implementation() override;
 
-	UFUNCTION(Client, Reliable)
-		void Client_BeginTurn();
 
+	void AnnounceTurnEnd();
 	virtual void EndTurn_Implementation() override;
 
 	UFUNCTION(Client, Reliable)
@@ -87,8 +87,8 @@ public:
 	UFUNCTION(Client, Reliable)
 		void Client_PerformRoundCleanup();
 
-	UFUNCTION(BlueprintCallable, Category = "Gloom|Pawn")
-		AGASCharacter* GetGloomPawn();
+	UFUNCTION(BlueprintCallable, Category = "Character")
+		AGASCharacter* GetGloomPawn() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Scenario|Player")
 		void SetReadyToStartScenario(bool bIsReady);

@@ -85,10 +85,11 @@ void AGloomPlayerController::PerformScenarioSetup_Implementation()
 	
 }
 
-void AGloomPlayerController::PrepareForRound_Implementation()
+void AGloomPlayerController::PrepareForRound()
 {
-	GloomHUD->Execute_PrepareForRound(GloomHUD);
+	GloomHUD->PrepareForRound();
 
+	Execute_OnPrepareForRound(this);
 }
 
 void AGloomPlayerController::BeginRound_Implementation()
@@ -96,21 +97,40 @@ void AGloomPlayerController::BeginRound_Implementation()
 	GloomHUD->Execute_BeginRound(GloomHUD);
 }
 
-void AGloomPlayerController::BeginTurn_Implementation()
+void AGloomPlayerController::AnnounceTurnStart()
 {
-	if (!IsLocalController())
-		Client_BeginTurn();
-	else
+	AGloomGameState* GS = Cast<AGloomGameState>(GetWorld()->GetGameState());
+	if (GS)
 	{
-		if (GloomHUD)
-			GloomHUD->Execute_BeginTurn(GloomHUD);
+		AController* TurnController = GS->GetCurrentTurnController();
+		if (this == TurnController)
+		{
+			Execute_BeginTurn(this);
+		}
+		else if(GloomHUD)
+		{
+			IScenarioControllerInterface* ISC = Cast<IScenarioControllerInterface>(TurnController);
+			if (ISC)
+			{
+				FString Announcement = FString::Printf(TEXT("%s's Turn"), *ISC->Execute_GetCharacterName(TurnController));
+				GloomHUD->OnReceiveAnnouncement(Announcement);
+			}
+		}
 	}
-
 }
 
-void AGloomPlayerController::Client_BeginTurn_Implementation()
+void AGloomPlayerController::BeginTurn_Implementation()
 {
-	BeginTurn();
+	if (GloomHUD)
+			GloomHUD->Execute_BeginTurn(GloomHUD);
+}
+
+void AGloomPlayerController::AnnounceTurnEnd()
+{
+	if (GloomHUD)
+	{
+		GloomHUD->OnTurnEnd();
+	}
 }
 
 void AGloomPlayerController::EndTurn_Implementation()
@@ -156,7 +176,7 @@ void AGloomPlayerController::Client_PerformRoundCleanup_Implementation()
 	GloomHUD->Execute_PerformRoundCleanup(GloomHUD);
 }
 
-AGASCharacter * AGloomPlayerController::GetGloomPawn()
+AGASCharacter * AGloomPlayerController::GetGloomPawn() const
 {
 	if (GetPawn())
 	{

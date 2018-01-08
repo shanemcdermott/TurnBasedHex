@@ -12,6 +12,11 @@ bool IScenarioInterface::IsReadyToStartScenario() const
 	return true;
 }
 
+void IScenarioInterface::PrepareForRound()
+{
+	//Implemented in children
+}
+
 bool IScenarioInterface::IsReadyToStartRound() const
 {
 	return true;
